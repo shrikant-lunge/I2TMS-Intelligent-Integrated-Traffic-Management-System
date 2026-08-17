@@ -1,0 +1,38 @@
+# Backend .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# Database / data
+/data/
+*.db
+*.sqlite
+
+# Model files / large binaries
+/models/
+*.pt
+*.onnx
+/yolov8n.pt
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Other
+*.tmp
+
+# Keep the supplied, self-contained ANPR module and its model assets.
+!anpr_demo/**/*.pt
+!anpr_demo/models/
+!anpr_demo/models/license_plate_detector.pt

@@ -1,0 +1,18 @@
+# Frontend .gitignore
+
+/node_modules/
+/dist/
+/.vite/
+/.cache/
+.env
+.env.*
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
