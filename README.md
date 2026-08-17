@@ -465,3 +465,7 @@ An open-source license such as MIT can be added once all project contributors ag
 ### Key Idea
 
 I²TMS transforms traffic management from fixed, reactive control into an intelligent, data-driven system capable of dynamically responding to traffic conditions and creating coordinated emergency corridors.
+
+---
+
+*Last modified for demonstration purposes.*
