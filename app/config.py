@@ -16,10 +16,28 @@ class Config:
     # Flask settings
     SECRET_KEY = os.environ.get("SECRET_KEY", os.urandom(24))
     
-    # Database
-    # Using SQLite for now per instructions
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or f"sqlite:///{BASE_DIR}/database/i2tms.db"
+    # ── Database ────────────────────────────────────────────────────────────
+    # TARGET: Supabase PostgreSQL
+    #   Set DATABASE_URL in .env to your Supabase connection string, e.g.:
+    #     DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+    #   The project ref is the subdomain of SUPABASE_URL (agdzmafsgoyyosigduct).
+    #   Find the password in Supabase → Project Settings → Database → Connection string.
+    #
+    # FALLBACK: SQLite (used when DATABASE_URL is not set)
+    _db_url = os.environ.get("DATABASE_URL") or f"sqlite:///{BASE_DIR}/database/i2tms.db"
+    # Supabase uses "postgres://" scheme in some contexts; SQLAlchemy requires "postgresql://"
+    if _db_url.startswith("postgres://"):
+        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Connection pool settings for PostgreSQL (ignored by SQLite)
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,        # Detect stale connections
+        "pool_recycle": 300,          # Recycle connections every 5 minutes
+        "connect_args": (
+            {"sslmode": "require"} if _db_url.startswith("postgresql") else {}
+        ),
+    }
     
     # --- Project Paths (from TMS) ---
     DATA_DIR = BASE_DIR / "data"
@@ -88,6 +106,7 @@ class Config:
 SECRET_KEY = Config.SECRET_KEY
 SQLALCHEMY_DATABASE_URI = Config.SQLALCHEMY_DATABASE_URI
 SQLALCHEMY_TRACK_MODIFICATIONS = Config.SQLALCHEMY_TRACK_MODIFICATIONS
+SQLALCHEMY_ENGINE_OPTIONS = Config.SQLALCHEMY_ENGINE_OPTIONS
 DATA_DIR = Config.DATA_DIR
 EVIDENCE_DIR = Config.EVIDENCE_DIR
 PLATES_DIR = Config.PLATES_DIR

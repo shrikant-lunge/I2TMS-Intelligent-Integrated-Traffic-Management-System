@@ -148,84 +148,143 @@ def profile():
 @login_required
 def api_dashboard_summary():
     """
-    Dashboard summary JSON.
-    Items marked  # REAL  pull live data from the DB.
-    Items marked  # MOCK  use generated/hardcoded values — replace with
-    real pipeline data from your teammates' detection module.
+    Dashboard summary — all values are database-driven.
+    No mock/random data.
     """
-    now = datetime.utcnow()
+    from app.models.emergency_corridor_record import EmergencyCorridorRecord
+    from app.models.adaptive_signal_state import AdaptiveSignalState
+    from app.models.traffic_trend import TrafficTrend
 
-    # ── REAL: live junction cards (first 4 A-D junctions) ───────────────────
+    now = datetime.utcnow()
+    window_start = now - timedelta(minutes=30)  # "active" = updated within 30 min
+
+    # ── REAL: stat cards ─────────────────────────────────────────────────────
+
+    # Total junctions in the database
+    total_junctions = Junction.query.count()
+
+    # Active junctions = those with a recent AdaptiveSignalState update
+    active_junction_names = (
+        db.session.query(AdaptiveSignalState.junction_name)
+        .filter(AdaptiveSignalState.updated_at >= window_start)
+        .distinct()
+        .all()
+    )
+    active_junctions = len(active_junction_names)
+    # Floor: count junctions whose DB status != "low" as a fallback
+    if active_junctions == 0:
+        active_junctions = Junction.query.filter(Junction.status != "low").count()
+
+    # Average congestion from the most recent AdaptiveSignalState rows
+    recent_states = (
+        AdaptiveSignalState.query
+        .filter(AdaptiveSignalState.updated_at >= window_start)
+        .all()
+    )
+    if recent_states:
+        level_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
+        for s in recent_states:
+            lvl = (s.congestion_level or "LOW").upper()
+            if lvl in level_counts:
+                level_counts[lvl] += 1
+        dominant = max(level_counts, key=level_counts.get)
+        avg_congestion = dominant.capitalize()
+    else:
+        # Fall back to junction status distribution
+        high_count = Junction.query.filter_by(status="high").count()
+        mod_count  = Junction.query.filter_by(status="moderate").count()
+        if high_count >= mod_count:
+            avg_congestion = "High"
+        elif mod_count > 0:
+            avg_congestion = "Moderate"
+        else:
+            avg_congestion = "Low"
+
+    # Active corridors from the new EmergencyCorridorRecord table
+    active_corridors = EmergencyCorridorRecord.query.filter_by(status="ACTIVE").count()
+
+    # ── REAL: live junction cards ────────────────────────────────────────────
     display_junctions = (
         Junction.query
-        .filter(Junction.name.like("Junction _"))
         .order_by(Junction.name)
         .limit(4)
         .all()
     )
-    live_junctions = [
-        {
+    live_junctions = []
+    for j in display_junctions:
+        # Try to find the most recent signal state for this junction
+        state = (
+            AdaptiveSignalState.query
+            .filter_by(junction_name=j.name)
+            .order_by(AdaptiveSignalState.updated_at.desc())
+            .first()
+        )
+        badge_status = state.traffic_level.lower() if state else j.status
+        live_junctions.append({
             "name":          j.name,
-            "status":        j.status,
+            "status":        badge_status,
             "thumbnail_url": j.camera_thumbnail_url or "",
             "link":          f"/adaptive-signals?junction={j.name.split()[-1]}",
-        }
-        for j in display_junctions
-    ]
+        })
 
-    # ── REAL: recent active alerts ───────────────────────────────────────────
-    alert_rows = (
-        Alert.query
-        .filter_by(status="active")
-        .order_by(Alert.created_at.desc())
+    # ── REAL: traffic trend from TrafficTrend table ───────────────────────────
+    trend_start = now - timedelta(hours=1)
+    trend_rows = (
+        TrafficTrend.query
+        .filter(TrafficTrend.time_bucket >= trend_start)
+        .order_by(TrafficTrend.time_bucket.asc())
+        .all()
+    )
+
+    if trend_rows:
+        labels, high_vals, med_vals, low_vals = [], [], [], []
+        for row in trend_rows:
+            labels.append(row.time_bucket.strftime("%H:%M"))
+            level = (row.congestion_level or "LOW").upper()
+            high_vals.append(row.vehicle_count if level == "HIGH"   else 0)
+            med_vals.append( row.vehicle_count if level == "MEDIUM" else 0)
+            low_vals.append( row.vehicle_count if level == "LOW"    else 0)
+        trend_data = {"labels": labels, "high": high_vals, "medium": med_vals, "low": low_vals}
+    else:
+        # No historical data yet — return empty state clearly labelled
+        trend_data = {
+            "labels": [],
+            "high":   [],
+            "medium": [],
+            "low":    [],
+            "empty_message": "No historical traffic data available yet. Data will appear here once the adaptive-signal pipeline processes its first feed.",
+        }
+
+    # ── REAL: recent emergency corridors (replaces recent alerts) ─────────────
+    recent_corridor_rows = (
+        EmergencyCorridorRecord.query
+        .order_by(EmergencyCorridorRecord.created_at.desc())
         .limit(5)
         .all()
     )
-    recent_alerts = [
-        {
-            "type":     a.alert_type,
-            "junction": a.junction.name if a.junction else "Unknown",
-            "time":     a.created_at.strftime("%I:%M %p"),
-            "severity": a.severity,
-        }
-        for a in alert_rows
-    ]
-
-    # ── MOCK: stat card totals ───────────────────────────────────────────────
-    # TODO: Replace with real aggregated queries once junction sensor table is live
-    total_junctions  = 128
-    active_junctions = 96
-    avg_congestion   = "Moderate"
-    active_corridors = 2
-
-    # ── MOCK: traffic trend — rolling 1-hour window, 5-min intervals ─────────
-    # TODO: Replace with time-series query from detection pipeline (e.g. SELECT
-    #       COUNT(*) FROM detections WHERE congestion_level='high' AND ts >= NOW()-INTERVAL 1 HOUR
-    #       GROUP BY FLOOR(UNIX_TIMESTAMP(ts)/300))
-    labels, high_vals, med_vals, low_vals = [], [], [], []
-    for i in range(13):                      # 12 × 5 min = 60-min window
-        minutes_back = 60 - i * 5
-        t_hour   = (now.hour - minutes_back // 60) % 24
-        t_minute = (now.minute - minutes_back % 60) % 60
-        labels.append(f"{t_hour:02d}:{t_minute:02d}")
-        phase = i / 12 * 2 * math.pi
-        high_vals.append(max(0, int(28 + 18 * math.sin(phase) + random.randint(-4, 4))))
-        med_vals.append( max(0, int(50 + 14 * math.cos(phase) + random.randint(-4, 4))))
-        low_vals.append( max(0, int(68 - 10 * math.sin(phase) + random.randint(-4, 4))))
+    recent_corridors = []
+    for c in recent_corridor_rows:
+        ts = c.started_at or c.created_at
+        recent_corridors.append({
+            "corridor_id":      c.corridor_id,
+            "source":           c.source_name,
+            "destination":      c.destination_name,
+            "status":           c.status,
+            "time":             ts.strftime("%I:%M %p") if ts else "—",
+            "distance_km":      c.distance_km,
+            "optimized_eta":    c.optimized_eta_minutes,
+            "time_saved":       c.time_saved_minutes,
+            "detail_url":       f"/emergency-corridor/{c.corridor_id}",
+        })
 
     return jsonify({
-        "total_junctions":  total_junctions,
-        "active_junctions": active_junctions,
-        "avg_congestion":   avg_congestion,
-        "active_corridors": active_corridors,
-        "live_junctions":   live_junctions,
-        "traffic_trend": {
-            "labels": labels,
-            "high":   high_vals,
-            "medium": med_vals,
-            "low":    low_vals,
-        },
-        "recent_alerts": recent_alerts,
+        "total_junctions":    total_junctions,
+        "active_junctions":   active_junctions,
+        "avg_congestion":     avg_congestion,
+        "active_corridors":   active_corridors,
+        "live_junctions":     live_junctions,
+        "traffic_trend":      trend_data,
+        "recent_corridors":   recent_corridors,
     })
 
 
@@ -549,71 +608,92 @@ def api_export_analytics():
 @login_required
 def api_decision_logs():
     """
-    Detailed decision logs query endpoint.
-    Filters by junction, time range, decision type.
-    Returns paginated JSON response.
+    Decision logs — queries the DecisionLog table (DB-backed).
+    Falls back to SignalPlanHistory if DecisionLog is empty (backward compat).
     """
-    junction_key = request.args.get("junction", "all")
-    time_range   = request.args.get("range", "today").lower()
-    decision_type = request.args.get("type", "all").lower()
-    page         = request.args.get("page", 1, type=int)
-    per_page     = request.args.get("per_page", 5, type=int)
+    from app.models.decision_log import DecisionLog
 
-    query = SignalPlanHistory.query
+    junction_filter  = request.args.get("junction", "all")
+    time_range       = request.args.get("range",    "today").lower()
+    decision_type    = request.args.get("type",     "all").lower()
+    page             = request.args.get("page",     1, type=int)
+    per_page         = request.args.get("per_page", 5, type=int)
 
-    # Junction filter
-    if junction_key != "all":
-        j_obj = Junction.query.filter_by(name=f"Junction {junction_key}").first()
-        if j_obj:
-            query = query.filter_by(junction_id=j_obj.id)
+    # ── Build query ───────────────────────────────────────────────────────
+    query = DecisionLog.query
+
+    if junction_filter != "all":
+        # Accept either short key ("A") or full name ("Rahate Colony Square")
+        if len(junction_filter) <= 2:
+            query = query.filter(
+                DecisionLog.junction_name.like(f"Junction {junction_filter}%")
+            )
         else:
-            # If junction doesn't exist, return empty
-            return jsonify({
-                "rows": [],
-                "pagination": {
-                    "current_page": page,
-                    "per_page": per_page,
-                    "total_rows": 0,
-                    "total_pages": 0
-                }
-            })
+            query = query.filter(DecisionLog.junction_name == junction_filter)
 
-    # Time range filter
     now = datetime.utcnow()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-
     if time_range == "today":
-        query = query.filter(SignalPlanHistory.applied_at >= today_start)
+        query = query.filter(DecisionLog.created_at >= today_start)
     elif time_range == "yesterday":
-        yesterday_start = today_start - timedelta(days=1)
-        query = query.filter(SignalPlanHistory.applied_at >= yesterday_start, SignalPlanHistory.applied_at < today_start)
+        query = query.filter(
+            DecisionLog.created_at >= today_start - timedelta(days=1),
+            DecisionLog.created_at <  today_start,
+        )
     elif time_range == "7days":
-        start_date = today_start - timedelta(days=7)
-        query = query.filter(SignalPlanHistory.applied_at >= start_date)
+        query = query.filter(DecisionLog.created_at >= today_start - timedelta(days=7))
     elif time_range == "30days":
-        start_date = today_start - timedelta(days=30)
-        query = query.filter(SignalPlanHistory.applied_at >= start_date)
+        query = query.filter(DecisionLog.created_at >= today_start - timedelta(days=30))
 
-    # Decision type filter
     if decision_type != "all":
-        query = query.filter_by(decision_type=decision_type)
+        # Map UI value → module/decision column value
+        if decision_type == "adaptive":
+            query = query.filter(DecisionLog.module == "adaptive_signal")
+        elif decision_type == "manual_override":
+            query = query.filter(DecisionLog.module == "manual_override")
+        elif decision_type == "emergency":
+            query = query.filter(DecisionLog.module == "emergency_corridor")
 
-    # Ordering
-    query = query.order_by(SignalPlanHistory.applied_at.desc())
+    query = query.order_by(DecisionLog.created_at.desc())
 
-    # Pagination
+    # ── Check if we have any DecisionLog rows at all ──────────────────────
+    if DecisionLog.query.count() == 0:
+        # Fall back to SignalPlanHistory for backward compatibility
+        return _api_decision_logs_legacy(junction_filter, time_range, decision_type, page, per_page)
+
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    rows_data = [
-        {
-            "time":             h.applied_at.strftime("%I:%M %p"),
-            "junction":         h.junction.name if h.junction else f"Junction {h.junction_id}",
-            "decision_type":    h.decision_type,
-            "recommended_plan": f"A:{h.phase_a_sec} B:{h.phase_b_sec} C:{h.phase_c_sec} D:{h.phase_d_sec}",
-            "applied_by":       h.applied_by,
-        }
-        for h in pagination.items
-    ]
+    rows_data = []
+    for log in pagination.items:
+        # Build a plan summary from green_time or metadata
+        plan_summary = ""
+        if log.green_time:
+            dir_label = (log.direction or "").upper()
+            plan_summary = f"{dir_label}: {log.green_time:.0f}s"
+        elif log.metadata_ and isinstance(log.metadata_, dict):
+            phases = log.metadata_.get("signal_plan", [])
+            if phases:
+                plan_summary = "  ".join(
+                    f"{p.get('direction_label','?')}:{p.get('green_time_sec',0):.0f}s"
+                    for p in phases[:4]
+                )
+        if not plan_summary:
+            plan_summary = log.decision or "—"
+
+        rows_data.append({
+            "time":             log.created_at.strftime("%I:%M %p"),
+            "junction":         log.junction_name or "—",
+            "direction":        log.direction or "—",
+            "decision":         log.decision or "—",
+            "decision_type":    log.module or "adaptive",
+            "traffic_level":    log.traffic_level or "—",
+            "congestion_level": log.congestion_level or "—",
+            "pcu":              round(log.pcu, 1) if log.pcu else "—",
+            "green_time":       round(log.green_time, 0) if log.green_time else "—",
+            "reason":           log.reason or "",
+            "recommended_plan": plan_summary,
+            "applied_by":       "System" if log.module == "adaptive_signal" else "Operator",
+        })
 
     return jsonify({
         "rows": rows_data,
@@ -622,7 +702,69 @@ def api_decision_logs():
             "per_page":     pagination.per_page,
             "total_rows":   pagination.total,
             "total_pages":  pagination.pages,
+        },
+    })
+
+
+def _api_decision_logs_legacy(junction_filter, time_range, decision_type, page, per_page):
+    """Backward-compat fallback: query SignalPlanHistory when DecisionLog is empty."""
+    query = SignalPlanHistory.query
+
+    if junction_filter != "all":
+        j_obj = Junction.query.filter_by(name=f"Junction {junction_filter}").first()
+        if j_obj:
+            query = query.filter_by(junction_id=j_obj.id)
+        else:
+            return jsonify({"rows": [], "pagination": {
+                "current_page": page, "per_page": per_page,
+                "total_rows": 0, "total_pages": 0}})
+
+    now = datetime.utcnow()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    if time_range == "today":
+        query = query.filter(SignalPlanHistory.applied_at >= today_start)
+    elif time_range == "yesterday":
+        query = query.filter(
+            SignalPlanHistory.applied_at >= today_start - timedelta(days=1),
+            SignalPlanHistory.applied_at <  today_start)
+    elif time_range == "7days":
+        query = query.filter(SignalPlanHistory.applied_at >= today_start - timedelta(days=7))
+    elif time_range == "30days":
+        query = query.filter(SignalPlanHistory.applied_at >= today_start - timedelta(days=30))
+
+    if decision_type not in ("all", "adaptive", "manual_override"):
+        decision_type = "all"
+    if decision_type != "all":
+        query = query.filter_by(decision_type=decision_type)
+
+    query = query.order_by(SignalPlanHistory.applied_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    rows_data = [
+        {
+            "time":             h.applied_at.strftime("%I:%M %p"),
+            "junction":         h.junction.name if h.junction else f"Junction {h.junction_id}",
+            "direction":        "—",
+            "decision":         h.decision_type.replace("_", " ").title(),
+            "decision_type":    h.decision_type,
+            "traffic_level":    "—",
+            "congestion_level": "—",
+            "pcu":              "—",
+            "green_time":       "—",
+            "reason":           "",
+            "recommended_plan": f"A:{h.phase_a_sec} B:{h.phase_b_sec} C:{h.phase_c_sec} D:{h.phase_d_sec}",
+            "applied_by":       h.applied_by,
         }
+        for h in pagination.items
+    ]
+    return jsonify({
+        "rows": rows_data,
+        "pagination": {
+            "current_page": pagination.page,
+            "per_page":     pagination.per_page,
+            "total_rows":   pagination.total,
+            "total_pages":  pagination.pages,
+        },
     })
 
 

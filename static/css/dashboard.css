@@ -383,3 +383,32 @@
   .junction-grid { grid-template-columns: 1fr 1fr; }
   .stat-value    { font-size: 24px; }
 }
+
+/* ── Recent Emergency Corridors ──────────────────────────── */
+.corridor-row {
+  color: inherit;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.corridor-row:hover {
+  background: #F3F4F6;
+}
+
+/* Status icon colours */
+.corridor-status-active    { color: #10B981; }
+.corridor-status-completed { color: #3B82F6; }
+.corridor-status-closed    { color: #9CA3AF; }
+
+/* Status badges */
+.corridor-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+.corridor-badge-active    { background: #D1FAE5; color: #065F46; }
+.corridor-badge-completed { background: #DBEAFE; color: #1E40AF; }
+.corridor-badge-closed    { background: #F3F4F6; color: #6B7280; }
