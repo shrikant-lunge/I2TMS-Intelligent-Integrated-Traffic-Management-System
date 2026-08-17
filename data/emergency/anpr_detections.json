@@ -1,0 +1,135 @@
+{
+  "video_file": "anpr_demo.mp4",
+  "fps": 30,
+  "total_frames": 930,
+  "duration_sec": 31,
+  "note": "Results derived from pre-recorded ANPR demonstration. plate readings are raw OCR output from the license plate detection model — the highest-confidence reading per vehicle is flagged as primary.",
+  "detections": [
+    {
+      "frame_number": 195,
+      "timestamp_sec": 6.5,
+      "car_id": 6,
+      "plate": "TI02NN1826",
+      "confidence": 0.139,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 209,
+      "timestamp_sec": 6.967,
+      "car_id": 6,
+      "plate": "IA02MM1820",
+      "confidence": 0.232,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 216,
+      "timestamp_sec": 7.2,
+      "car_id": 6,
+      "plate": "XA02HN1828",
+      "confidence": 0.27,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 219,
+      "timestamp_sec": 7.3,
+      "car_id": 6,
+      "plate": "KA02HN1828",
+      "confidence": 0.538,
+      "is_primary": true,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 224,
+      "timestamp_sec": 7.467,
+      "car_id": 6,
+      "plate": "KA02XH1826",
+      "confidence": 0.352,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 225,
+      "timestamp_sec": 7.5,
+      "car_id": 6,
+      "plate": "KA02MK1828",
+      "confidence": 0.186,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 234,
+      "timestamp_sec": 7.8,
+      "car_id": 6,
+      "plate": "KA02KN1826",
+      "confidence": 0.494,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 260,
+      "timestamp_sec": 8.667,
+      "car_id": 6,
+      "plate": "KA02NN1828",
+      "confidence": 0.194,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 265,
+      "timestamp_sec": 8.833,
+      "car_id": 6,
+      "plate": "KA02HH1828",
+      "confidence": 0.22,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 518,
+      "timestamp_sec": 17.267,
+      "car_id": 69,
+      "plate": "KA02PM9091",
+      "confidence": 0.165,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 518,
+      "timestamp_sec": 17.267,
+      "car_id": 69,
+      "plate": "XA02N4909",
+      "confidence": 0.31,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 534,
+      "timestamp_sec": 17.8,
+      "car_id": 69,
+      "plate": "XA02HM9091",
+      "confidence": 0.315,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 535,
+      "timestamp_sec": 17.833,
+      "car_id": 69,
+      "plate": "KA02HH9091",
+      "confidence": 0.429,
+      "is_primary": false,
+      "source": "Ambulance CCTV"
+    },
+    {
+      "frame_number": 629,
+      "timestamp_sec": 20.967,
+      "car_id": 69,
+      "plate": "KA02MM9091",
+      "confidence": 0.958,
+      "is_primary": true,
+      "source": "Ambulance CCTV"
+    }
+  ]
+}

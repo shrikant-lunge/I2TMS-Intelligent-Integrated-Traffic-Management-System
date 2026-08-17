@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block page_title %}Adaptive Signals — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/adaptive-signals.css') }}?v=6" />
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Upload / Pipeline row ───────────────────────────────────────────── -->
+<div class="section-panel upload-panel">
+  <div class="panel-header upload-panel-header">
+    <div>
+      <div class="panel-title">Adaptive Signal Uploads
+        <span class="demo-badge">DEMO MODE · CCTV CLIPS</span>
+      </div>
+      <div class="panel-subtitle">Upload traffic clips for each approach. Each clip is queued and processed immediately — no need to wait for all four slots.</div>
+    </div>
+    <div class="upload-actions">
+      <button class="btn-decision btn-primary" id="btn-process-first" type="button">Run Sequence</button>
+      <span class="upload-status" id="upload-status">Waiting for uploads</span>
+    </div>
+  </div>
+
+  <div class="upload-grid" id="upload-grid">
+    <div class="upload-card upload-card-primary" data-slot="0" data-direction="north">
+      <div class="upload-card-head">
+        <span class="upload-card-title">1. North</span>
+        <span class="upload-card-tag" id="slot-tag-0">Pipeline slot</span>
+      </div>
+      <label class="upload-dropzone" for="video-upload-0">
+        <input id="video-upload-0" type="file" accept="image/*,video/*" />
+        <span class="upload-dropzone-copy">Choose a north-bound upload</span>
+        <span class="upload-dropzone-hint">image / video</span>
+      </label>
+      <div class="upload-media-shell">
+        <img id="image-preview-0" class="upload-preview upload-preview-image" alt="North upload preview" />
+        <video id="video-preview-0" class="upload-preview upload-preview-video" muted playsinline controls loop></video>
+      </div>
+      <div class="upload-meta" id="upload-meta-0">No file selected</div>
+      <div class="slot-status" id="slot-status-0">Waiting for file</div>
+    </div>
+
+    <div class="upload-card" data-slot="1" data-direction="east">
+      <div class="upload-card-head">
+        <span class="upload-card-title">2. East</span>
+        <span class="upload-card-tag" id="slot-tag-1">Queue</span>
+      </div>
+      <label class="upload-dropzone" for="video-upload-1">
+        <input id="video-upload-1" type="file" accept="image/*,video/*" />
+        <span class="upload-dropzone-copy">Choose an east-bound upload</span>
+        <span class="upload-dropzone-hint">image / video</span>
+      </label>
+      <div class="upload-media-shell">
+        <img id="image-preview-1" class="upload-preview upload-preview-image" alt="East upload preview" />
+        <video id="video-preview-1" class="upload-preview upload-preview-video" muted playsinline controls loop></video>
+      </div>
+      <div class="upload-meta" id="upload-meta-1">No file selected</div>
+      <div class="slot-status" id="slot-status-1">Waiting for file</div>
+    </div>
+
+    <div class="upload-card" data-slot="2" data-direction="south">
+      <div class="upload-card-head">
+        <span class="upload-card-title">3. South</span>
+        <span class="upload-card-tag" id="slot-tag-2">Queue</span>
+      </div>
+      <label class="upload-dropzone" for="video-upload-2">
+        <input id="video-upload-2" type="file" accept="image/*,video/*" />
+        <span class="upload-dropzone-copy">Choose a south-bound upload</span>
+        <span class="upload-dropzone-hint">image / video</span>
+      </label>
+      <div class="upload-media-shell">
+        <img id="image-preview-2" class="upload-preview upload-preview-image" alt="South upload preview" />
+        <video id="video-preview-2" class="upload-preview upload-preview-video" muted playsinline controls loop></video>
+      </div>
+      <div class="upload-meta" id="upload-meta-2">No file selected</div>
+      <div class="slot-status" id="slot-status-2">Waiting for file</div>
+    </div>
+
+    <div class="upload-card" data-slot="3" data-direction="west">
+      <div class="upload-card-head">
+        <span class="upload-card-title">4. West</span>
+        <span class="upload-card-tag" id="slot-tag-3">Queue</span>
+      </div>
+      <label class="upload-dropzone" for="video-upload-3">
+        <input id="video-upload-3" type="file" accept="image/*,video/*" />
+        <span class="upload-dropzone-copy">Choose a west-bound upload</span>
+        <span class="upload-dropzone-hint">image / video</span>
+      </label>
+      <div class="upload-media-shell">
+        <img id="image-preview-3" class="upload-preview upload-preview-image" alt="West upload preview" />
+        <video id="video-preview-3" class="upload-preview upload-preview-video" muted playsinline controls loop></video>
+      </div>
+      <div class="upload-meta" id="upload-meta-3">No file selected</div>
+      <div class="slot-status" id="slot-status-3">Waiting for file</div>
+    </div>
+
+    <!-- 5th extra slot — maps to north by default, user can reassign via direction select -->
+    <!-- <div class="upload-card upload-card-extra" data-slot="4" data-direction="north">
+      <div class="upload-card-head">
+        <span class="upload-card-title">5. Extra Clip</span>
+        <span class="upload-card-tag" id="slot-tag-4">Queue</span>
+      </div>
+      <div class="extra-slot-dir">
+        <label class="extra-slot-dir-label" for="extra-slot-dir-4">Assign to:</label>
+        <select id="extra-slot-dir-4" class="extra-slot-dir-select">
+          <option value="north">North</option>
+          <option value="east">East</option>
+          <option value="south">South</option>
+          <option value="west">West</option>
+        </select>
+      </div>
+      <label class="upload-dropzone" for="video-upload-4">
+        <input id="video-upload-4" type="file" accept="image/*,video/*" />
+        <span class="upload-dropzone-copy">Choose an extra clip</span>
+        <span class="upload-dropzone-hint">image / video</span>
+      </label>
+      <div class="upload-media-shell">
+        <img id="image-preview-4" class="upload-preview upload-preview-image" alt="Extra upload preview" />
+        <video id="video-preview-4" class="upload-preview upload-preview-video" muted playsinline controls loop></video>
+      </div>
+      <div class="upload-meta" id="upload-meta-4">No file selected</div>
+      <div class="slot-status" id="slot-status-4">Waiting for file</div>
+    </div>
+  </div> -->
+
+  <div class="pipeline-result" id="pipeline-result">
+    <div class="pipeline-result-empty">Upload a traffic clip to compute green time and traffic state.</div>
+  </div>
+</div>
+
+<!-- ── Junction selector row ────────────────────────────────────────────── -->
+<div class="as-selector-row">
+  <div class="selector-group">
+    <label for="junction-select" class="selector-label">Select Junction</label>
+    <div class="select-wrap">
+      <select id="junction-select" class="junction-select" aria-label="Select junction">
+        {% set selected_key = selected_junction|default('rahate-colony') %}
+        <option value="rahate-colony" {% if selected_key == 'rahate-colony' %}selected{% endif %}>Rahate Colony</option>
+        <option value="shankar-nagar" {% if selected_key == 'shankar-nagar' %}selected{% endif %}>Shankar Nagar</option>
+        <option value="laxmi-nagar-sq" {% if selected_key == 'laxmi-nagar-sq' %}selected{% endif %}>Laxmi Nagar Sq.</option>
+        <option value="dikshabhoomi-sq" {% if selected_key == 'dikshabhoomi-sq' %}selected{% endif %}>Dikshabhoomi Sq.</option>
+        <option value="law-college-sq" {% if selected_key == 'law-college-sq' %}selected{% endif %}>Law College Sq.</option>
+        <option value="zero-mile-sq" {% if selected_key == 'zero-mile-sq' %}selected{% endif %}>Zero Mile Sq.</option>
+      </select>
+      <span class="select-caret" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+  </div>
+  <!-- Live indicator -->
+  <div class="as-live-badge" id="as-live-badge">
+    <span class="live-dot"></span>
+    <span>LIVE</span>
+  </div>
+</div>
+
+<!-- ── Main 65/35 grid ──────────────────────────────────────────────────── -->
+<div class="as-main-grid">
+
+  <!-- LEFT: Video Feed panel -->
+  <div class="section-panel video-panel">
+    <div class="panel-header">
+      <span class="panel-title">Live Traffic Dashboard</span>
+      <span class="panel-subtitle" id="video-junction-label">Rahate Colony</span>
+    </div>
+
+    <div class="quadrant-board" id="quadrant-board" aria-label="Four directional live traffic camera views">
+
+      <!-- North -->
+      <div class="lane-card lane-north" data-direction="north">
+        <div class="lane-signal" aria-hidden="true">
+          <span class="signal-bulb red active"></span>
+          <span class="signal-bulb amber"></span>
+          <span class="signal-bulb green"></span>
+        </div>
+        <div class="lane-feed">
+          <!-- Actual media element — sits BEHIND the overlay text -->
+          <img  id="lane-img-north"   class="lane-media lane-media-img"   alt="North feed" />
+          <video id="lane-vid-north"  class="lane-media lane-media-vid"   muted playsinline loop></video>
+          <div class="lane-overlay">
+            <div class="lane-header-row">
+              <span class="lane-title">North</span>
+              <span class="lane-id">Lane 1</span>
+            </div>
+            <div class="lane-stats-grid">
+              <div class="lane-stat">
+                <span class="lane-stat-label">VEHICLES</span>
+                <span class="lane-stat-value" data-count>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">DENSITY</span>
+                <span class="lane-stat-value" data-density>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">PCU</span>
+                <span class="lane-stat-value" data-pcu>—</span>
+              </div>
+              <div class="lane-stat lane-stat-signal">
+                <span class="lane-stat-label">SIGNAL</span>
+                <span class="lane-stat-value" data-signal>RED</span>
+                <span class="lane-stat-timer" data-time>—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- East -->
+      <div class="lane-card lane-east" data-direction="east">
+        <div class="lane-signal" aria-hidden="true">
+          <span class="signal-bulb red"></span>
+          <span class="signal-bulb amber"></span>
+          <span class="signal-bulb green active"></span>
+        </div>
+        <div class="lane-feed">
+          <img  id="lane-img-east"    class="lane-media lane-media-img"   alt="East feed" />
+          <video id="lane-vid-east"   class="lane-media lane-media-vid"   muted playsinline loop></video>
+          <div class="lane-overlay">
+            <div class="lane-header-row">
+              <span class="lane-title">East</span>
+              <span class="lane-id">Lane 2</span>
+            </div>
+            <div class="lane-stats-grid">
+              <div class="lane-stat">
+                <span class="lane-stat-label">VEHICLES</span>
+                <span class="lane-stat-value" data-count>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">DENSITY</span>
+                <span class="lane-stat-value" data-density>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">PCU</span>
+                <span class="lane-stat-value" data-pcu>—</span>
+              </div>
+              <div class="lane-stat lane-stat-signal">
+                <span class="lane-stat-label">SIGNAL</span>
+                <span class="lane-stat-value" data-signal>RED</span>
+                <span class="lane-stat-timer" data-time>—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- West -->
+      <div class="lane-card lane-west" data-direction="west">
+        <div class="lane-signal" aria-hidden="true">
+          <span class="signal-bulb red"></span>
+          <span class="signal-bulb amber active"></span>
+          <span class="signal-bulb green"></span>
+        </div>
+        <div class="lane-feed">
+          <img  id="lane-img-west"    class="lane-media lane-media-img"   alt="West feed" />
+          <video id="lane-vid-west"   class="lane-media lane-media-vid"   muted playsinline loop></video>
+          <div class="lane-overlay">
+            <div class="lane-header-row">
+              <span class="lane-title">West</span>
+              <span class="lane-id">Lane 3</span>
+            </div>
+            <div class="lane-stats-grid">
+              <div class="lane-stat">
+                <span class="lane-stat-label">VEHICLES</span>
+                <span class="lane-stat-value" data-count>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">DENSITY</span>
+                <span class="lane-stat-value" data-density>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">PCU</span>
+                <span class="lane-stat-value" data-pcu>—</span>
+              </div>
+              <div class="lane-stat lane-stat-signal">
+                <span class="lane-stat-label">SIGNAL</span>
+                <span class="lane-stat-value" data-signal>RED</span>
+                <span class="lane-stat-timer" data-time>—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- South -->
+      <div class="lane-card lane-south" data-direction="south">
+        <div class="lane-signal" aria-hidden="true">
+          <span class="signal-bulb red active"></span>
+          <span class="signal-bulb amber"></span>
+          <span class="signal-bulb green"></span>
+        </div>
+        <div class="lane-feed">
+          <img  id="lane-img-south"   class="lane-media lane-media-img"   alt="South feed" />
+          <video id="lane-vid-south"  class="lane-media lane-media-vid"   muted playsinline loop></video>
+          <div class="lane-overlay">
+            <div class="lane-header-row">
+              <span class="lane-title">South</span>
+              <span class="lane-id">Lane 4</span>
+            </div>
+            <div class="lane-stats-grid">
+              <div class="lane-stat">
+                <span class="lane-stat-label">VEHICLES</span>
+                <span class="lane-stat-value" data-count>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">DENSITY</span>
+                <span class="lane-stat-value" data-density>—</span>
+              </div>
+              <div class="lane-stat">
+                <span class="lane-stat-label">PCU</span>
+                <span class="lane-stat-value" data-pcu>—</span>
+              </div>
+              <div class="lane-stat lane-stat-signal">
+                <span class="lane-stat-label">SIGNAL</span>
+                <span class="lane-stat-value" data-signal>RED</span>
+                <span class="lane-stat-timer" data-time>—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden phase overlay (still used by JS internally for lamp state) -->
+      <div class="phase-overlay current-phase-overlay" id="phase-overlay" style="display: none;">
+        <div class="signal-lamp-stack">
+          <span class="lamp lamp-red" id="lamp-red" data-active="false"></span>
+          <span class="lamp lamp-amber" id="lamp-amber" data-active="false"></span>
+          <span class="lamp lamp-green" id="lamp-green" data-active="true"></span>
+        </div>
+        <div class="phase-overlay-body phase-info">
+          <div id="emg-priority-indicator" class="emg-indicator" style="display:none;">EMERGENCY PRIORITY</div>
+          <span class="phase-name phase-label" id="phase-label">Phase A</span>
+          <span class="phase-countdown phase-timer" id="phase-countdown">37s</span>
+          <span class="phase-cycle-row phase-cycle">
+            Cycle:&nbsp;<span id="cycle-time">90</span>s
+          </span>
+        </div>
+      </div>
+    </div><!-- /.quadrant-board -->
+  </div><!-- /.video-panel -->
+
+  <!-- RIGHT: Stacked panels -->
+  <div class="right-panels">
+
+    <!-- Traffic State panel -->
+    <div class="section-panel">
+      <div class="panel-title">Traffic State</div>
+      <div class="traffic-state-grid">
+
+        <div class="metric-tile">
+          <span class="metric-label">PCU (Overall)</span>
+          <span class="metric-value" id="m-pcu">—</span>
+        </div>
+
+        <div class="metric-tile">
+          <span class="metric-label">Queue Length</span>
+          <span class="metric-value" id="m-queue">—</span>
+        </div>
+
+        <div class="metric-tile">
+          <span class="metric-label">Avg Speed</span>
+          <span class="metric-value" id="m-speed">—</span>
+        </div>
+
+        <div class="metric-tile">
+          <span class="metric-label">Density</span>
+          <span class="metric-value" id="m-density"><span class="badge badge-low">Low</span></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Recommended Signal Plan panel -->
+    <div class="section-panel">
+      <div class="panel-title">Recommended Signal Plan</div>
+      <div class="signal-plan" id="signal-plan">
+        <div class="phase-row">
+          <span class="phase-name">NORTH</span>
+          <div class="phase-bar-track"><div class="phase-bar-fill" style="width: 100%"></div></div>
+          <span class="phase-duration">—</span>
+        </div>
+        <div class="phase-row">
+          <span class="phase-name">EAST</span>
+          <div class="phase-bar-track"><div class="phase-bar-fill" style="width: 50%"></div></div>
+          <span class="phase-duration">—</span>
+        </div>
+        <div class="phase-row">
+          <span class="phase-name">SOUTH</span>
+          <div class="phase-bar-track"><div class="phase-bar-fill" style="width: 65%"></div></div>
+          <span class="phase-duration">—</span>
+        </div>
+        <div class="phase-row">
+          <span class="phase-name">WEST</span>
+          <div class="phase-bar-track"><div class="phase-bar-fill" style="width: 30%"></div></div>
+          <span class="phase-duration">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision Log panel -->
+    <div class="section-panel decision-log-panel">
+      <div class="decision-log-header">
+        <div class="panel-title">Decision Log</div>
+        <button class="decision-log-clear-btn" id="btn-clear-log" type="button">Clear</button>
+      </div>
+      <div class="decision-log-scroll" id="decision-log">
+        <div class="decision-log-empty">No decisions recorded yet.</div>
+      </div>
+    </div>
+
+  </div><!-- /.right-panels -->
+
+</div><!-- /.as-main-grid -->
+
+<!-- ── Decision row ─────────────────────────────────────────────────────── -->
+<div class="section-panel decision-panel">
+  <div class="decision-left">
+    <span class="decision-label">Decision</span>
+    <span class="decision-subtitle" id="decision-subtitle">Recommended Plan</span>
+  </div>
+  <div class="decision-buttons">
+    <button class="btn-decision btn-primary" id="btn-apply">
+      <svg class="icon-16" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      APPLY
+    </button>
+    <button class="btn-decision btn-outline" id="btn-hold">
+      <svg class="icon-16" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="4" width="4" height="16" rx="1"/>
+        <rect x="14" y="4" width="4" height="16" rx="1"/>
+      </svg>
+      HOLD CURRENT
+    </button>
+    <button class="btn-decision btn-outline btn-amber" id="btn-override">
+      <svg class="icon-16" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      MANUAL OVERRIDE
+    </button>
+  </div>
+</div>
+
+<!-- ── Manual Override Modal ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" aria-hidden="true" role="dialog"
+     aria-labelledby="modal-title" aria-modal="true">
+  <div class="modal-card" id="modal-card">
+
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Manual Override</h3>
+      <button class="modal-close-btn" id="modal-close" aria-label="Close modal">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6"  y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-desc">Force a specific phase and duration at <strong id="override-junction-name">Rahate Colony</strong>.</p>
+
+      <div class="modal-field">
+        <label for="override-phase" class="modal-label">Phase</label>
+        <div class="select-wrap">
+          <select id="override-phase" class="junction-select">
+            <option value="North">North</option>
+            <option value="East">East</option>
+            <option value="West">West</option>
+            <option value="South">South</option>
+          </select>
+          <span class="select-caret" aria-hidden="true">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label for="override-duration" class="modal-label">Duration (seconds)</label>
+        <input type="number" id="override-duration" class="modal-input"
+               value="30" min="5" max="180" placeholder="5 – 180" />
+      </div>
+
+      <div class="modal-error" id="modal-error" role="alert" aria-live="polite"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-decision btn-primary" id="btn-modal-apply">APPLY OVERRIDE</button>
+      <button class="btn-decision btn-outline" id="btn-modal-cancel">CANCEL</button>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/adaptive-signals.js') }}?v=6"></script>
+{% endblock %}

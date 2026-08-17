@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block page_title %}I²TMS{% endblock %}</title>
+  <meta name="description"
+    content="I²TMS — Intelligent Traffic &amp; Transportation Management System, Nagpur Municipal Corporation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}" />
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+  {% set active_page = active_page | default('') %}
+
+  <!-- ── Mobile overlay ── -->
+  <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
+
+  <!-- ══════════════════════════ SIDEBAR ══════════════════════════ -->
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+
+    <!-- Logo / wordmark row -->
+    <div class="sidebar-header">
+      <button class="sidebar-hamburger" id="sidebar-collapse-btn" aria-label="Collapse sidebar"
+        title="Collapse sidebar">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+      <a class="wordmark" href="{{ url_for('dashboard.dashboard_view') }}" tabindex="-1" aria-hidden="true">
+        <img src="{{ url_for('static', filename='img/emblem.png') }}" alt="NMC I²TMS seal" class="wordmark-logo" />
+        <span class="wordmark-text">I²TMS</span>
+      </a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <ul role="list">
+
+        <li class="nav-item{% if active_page == 'overview' %} active{% endif %}">
+          <a href="{{ url_for('dashboard.dashboard_view') }}" title="Overview">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </span>
+            <span class="nav-label">Overview</span>
+          </a>
+        </li>
+
+        <li class="nav-item{% if active_page == 'adaptive_signals' %} active{% endif %}">
+          <a href="{{ url_for('legacy.adaptive_signals') }}" title="Adaptive Signals">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="7" y="2" width="10" height="21" rx="3" />
+                <circle cx="12" cy="7" r="2" style="fill:currentColor;stroke:none" />
+                <circle cx="12" cy="12" r="2" style="fill:currentColor;stroke:none" />
+                <circle cx="12" cy="17" r="2" style="fill:currentColor;stroke:none" />
+              </svg>
+            </span>
+            <span class="nav-label">Adaptive Signals</span>
+          </a>
+        </li>
+
+        <li class="nav-item{% if active_page == 'live_video' %} active{% endif %}">
+          <a href="{{ url_for('legacy.live_video') }}" title="Live Video">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23 7l-7 5 7 5V7z"/>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+            </span>
+            <span class="nav-label">Live Video</span>
+          </a>
+        </li>
+
+        <li class="nav-item{% if active_page == 'decision_logs' %} active{% endif %}">
+          <a href="{{ url_for('legacy.decision_logs') }}" title="Decision Logs">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </span>
+            <span class="nav-label">Decision Logs</span>
+          </a>
+
+        <!-- <li class="nav-item{% if active_page == 'emergency' %} active{% endif %}">
+          <a href="{{ url_for('legacy.emergency_new') }}" title="Emergency Module">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+            </span>
+            <span class="nav-label">Emergency Module</span>
+          </a>
+        </li> -->
+
+        <!-- <li class="nav-item{% if active_page == 'emergency_corridor' %} active{% endif %}">
+          <a href="{{ url_for('emergency_corridor.admin_corridor_screen') }}" title="Green Corridor">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="11" width="18" height="2" rx="1" style="fill:currentColor;stroke:none"/>
+                <path d="M12 3l-4 5h8l-4-5z" style="fill:currentColor;stroke:none"/>
+                <circle cx="6" cy="18" r="2" style="fill:currentColor;stroke:none"/>
+                <circle cx="12" cy="18" r="2" style="fill:currentColor;stroke:none"/>
+                <circle cx="18" cy="18" r="2" style="fill:currentColor;stroke:none"/>
+              </svg>
+            </span>
+            <span class="nav-label">Green Corridor</span>
+          </a>
+        </li> -->
+
+        <li class="nav-item{% if active_page == 'analytics' %} active{% endif %}">
+          <a href="{{ url_for('legacy.analytics') }}" title="Analytics">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+                <line x1="2" y1="20" x2="22" y2="20" />
+              </svg>
+            </span>
+            <span class="nav-label">Analytics</span>
+          </a>
+        </li>
+
+        <!-- <li class="nav-item{% if active_page == 'incidents' %} active{% endif %}">
+          <a href="{{ url_for('legacy.incidents_alerts') }}" title="Incidents &amp; Alerts">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </span>
+            <span class="nav-label">Incidents &amp; Alerts</span>
+          </a>
+        </li> -->
+
+
+        <li class="nav-item{% if active_page == 'reports' %} active{% endif %}">
+          <a href="{{ url_for('legacy.reports') }}" title="Reports">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <line x1="10" y1="9" x2="8" y2="9" />
+              </svg>
+            </span>
+            <span class="nav-label">Reports</span>
+          </a>
+        </li>
+
+        <li class="nav-item{% if active_page == 'settings' %} active{% endif %}">
+          <a href="{{ url_for('legacy.settings') }}" title="Settings">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </span>
+            <span class="nav-label">Settings</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ══════════════════════════ MAIN AREA ══════════════════════════ -->
+  <div class="shell-main" id="shell-main">
+
+    <!-- Topbar -->
+    <header class="topbar" role="banner">
+      <!-- Mobile-only hamburger (opens sidebar overlay) -->
+      <button class="topbar-hamburger" id="topbar-hamburger-btn" aria-label="Open navigation">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      <!-- Topbar right: datetime + user dropdown -->
+      <div class="topbar-right">
+
+        <div class="topbar-datetime" id="topbar-datetime" aria-live="polite" aria-atomic="true"></div>
+
+        <div class="topbar-user">
+          <button class="user-btn" id="user-btn" aria-expanded="false" aria-haspopup="true">
+            <!-- Avatar initials -->
+            <span class="user-avatar" aria-hidden="true">
+              {{ session.get('username', 'A')[0].upper() }}
+            </span>
+            <span class="user-name">{{ session.get('username', 'Admin') }}</span>
+            <svg class="caret" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          <div class="user-dropdown" id="user-dropdown" role="menu">
+            <a href="/profile" role="menuitem" id="profile-link">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Profile
+            </a>
+            <a href="{{ url_for('auth.logout') }}" role="menuitem" id="topbar-logout-link" class="logout-link">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Logout
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="content-area" role="main" id="content-area">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div><!-- /.shell-main -->
+
+  <!-- ── Shell JS (datetime, dropdown, sidebar collapse/mobile) ── -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ── 1. Live clock ────────────────────────────────────────────── */
+      var dateEl = document.getElementById('topbar-datetime');
+      var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      function updateClock() {
+        var n = new Date();
+        var d = String(n.getDate()).padStart(2, '0');
+        var m = MONTHS[n.getMonth()];
+        var y = n.getFullYear();
+        var hr = n.getHours();
+        var min = String(n.getMinutes()).padStart(2, '0');
+        var sec = String(n.getSeconds()).padStart(2, '0');
+        var ampm = hr >= 12 ? 'PM' : 'AM';
+        hr = hr % 12 || 12;
+        dateEl.textContent = d + ' ' + m + ' ' + y + ' \u00B7 ' + hr + ':' + min + ':' + sec + ' ' + ampm;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      /* ── 2. User dropdown ─────────────────────────────────────────── */
+      var userBtn = document.getElementById('user-btn');
+      var userDd = document.getElementById('user-dropdown');
+      userBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = userDd.classList.toggle('open');
+        userBtn.setAttribute('aria-expanded', String(open));
+      });
+      document.addEventListener('click', function () {
+        userDd.classList.remove('open');
+        userBtn.setAttribute('aria-expanded', 'false');
+      });
+      userDd.addEventListener('click', function (e) { e.stopPropagation(); });
+
+      /* ── 3. Sidebar collapse (desktop) ───────────────────────────── */
+      var collapseBtn = document.getElementById('sidebar-collapse-btn');
+      var topbarHamBtn = document.getElementById('topbar-hamburger-btn');
+      var sidebar = document.getElementById('sidebar');
+      var overlay = document.getElementById('sidebar-overlay');
+      var sidebarCollapsed = false;
+
+      function setCollapsed(val) {
+        sidebarCollapsed = val;
+        document.body.classList.toggle('sidebar-collapsed', val);
+        collapseBtn.setAttribute('aria-label', val ? 'Expand sidebar' : 'Collapse sidebar');
+        try { localStorage.setItem('itms-sidebar-collapsed', val ? '1' : '0'); } catch (e) { }
+      }
+
+      // Restore saved state
+      try {
+        if (localStorage.getItem('itms-sidebar-collapsed') === '1') setCollapsed(true);
+      } catch (e) { }
+
+      collapseBtn.addEventListener('click', function () {
+        if (window.innerWidth <= 960) {
+          closeMobileSidebar();  // collapse btn acts as close on mobile
+        } else {
+          setCollapsed(!sidebarCollapsed);
+        }
+      });
+
+      /* ── 4. Mobile sidebar ───────────────────────────────────────── */
+      function openMobileSidebar() {
+        sidebar.classList.add('mobile-open');
+        overlay.classList.add('visible');
+        overlay.removeAttribute('aria-hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeMobileSidebar() {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('visible');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      topbarHamBtn.addEventListener('click', openMobileSidebar);
+      overlay.addEventListener('click', closeMobileSidebar);
+
+      // Close mobile sidebar on resize to desktop
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 960) closeMobileSidebar();
+      });
+
+    })();
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block page_title %}Live Junction Video — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/live-video.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Junction selector row ──────────────────────────────────────────────── -->
+<div class="lv-selector-row">
+  <div class="lv-junction-info">
+    <span class="lv-selector-label">Select Junction</span>
+    <div class="lv-junction-name-row">
+      <span class="lv-junction-name" id="lv-junction-name">Junction {{ selected_junction }}</span>
+      <span class="lv-camera-label" id="lv-camera-label">Camera 01</span>
+      <div class="lv-live-badge" id="lv-live-badge">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Junction picker pills -->
+  <div class="lv-junction-pills" id="lv-junction-pills">
+    {% for letter in ['A', 'B', 'C', 'D'] %}
+    <button
+      class="lv-junction-pill{% if selected_junction == letter %} active{% endif %}"
+      data-junction="{{ letter }}"
+      id="pill-junction-{{ letter }}"
+      aria-label="Select Junction {{ letter }}"
+    >Junction {{ letter }}</button>
+    {% endfor %}
+  </div>
+
+  <button class="lv-fullscreen-btn" id="lv-fullscreen-btn" title="Full Screen">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+      <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+      <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+      <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+    </svg>
+    Full Screen
+  </button>
+</div>
+
+<!-- ── Main 70/30 layout ──────────────────────────────────────────────────── -->
+<div class="lv-main-grid">
+
+  <!-- LEFT: Video panel -->
+  <div class="section-panel lv-video-panel" id="lv-video-panel">
+
+    <!-- REC indicator overlay (hidden by default) -->
+    <div class="lv-rec-badge" id="lv-rec-badge" aria-hidden="true">
+      <span class="rec-dot"></span>
+      REC
+    </div>
+
+    <!-- Video / camera feed area -->
+    <div class="lv-video-area" id="lv-video-area">
+      <img
+        id="lv-cam"
+        src="{{ url_for('static', filename='img/camera-placeholder.jpg') }}"
+        alt="Junction camera feed"
+        class="lv-cam-img"
+      />
+      <!-- PTZ overlay (hidden by default) -->
+      <div class="lv-ptz-overlay" id="lv-ptz-overlay" aria-hidden="true">
+        <div class="lv-ptz-pad">
+          <button class="ptz-btn ptz-up"    id="ptz-up"    title="Tilt Up"    aria-label="Tilt Up">
+            <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+          </button>
+          <button class="ptz-btn ptz-left"  id="ptz-left"  title="Pan Left"   aria-label="Pan Left">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="ptz-btn ptz-center" id="ptz-center" title="Center"   aria-label="Center">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="ptz-btn ptz-right" id="ptz-right" title="Pan Right"  aria-label="Pan Right">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="ptz-btn ptz-down"  id="ptz-down"  title="Tilt Down"  aria-label="Tilt Down">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div class="lv-ptz-zoom">
+          <button class="ptz-zoom-btn" id="ptz-zoom-in"  title="Zoom In"  aria-label="Zoom In">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+          <button class="ptz-zoom-btn" id="ptz-zoom-out" title="Zoom Out" aria-label="Zoom Out">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Camera change dropdown (hidden by default) -->
+      <div class="lv-cam-dropdown" id="lv-cam-dropdown" aria-hidden="true">
+        <div class="lv-cam-dropdown-inner">
+          <span class="lv-cam-dropdown-label">Select Camera</span>
+          <button class="lv-cam-option active" data-cam="Camera 01" id="cam-opt-01">
+            <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Camera 01
+          </button>
+          <button class="lv-cam-option" data-cam="Camera 02" id="cam-opt-02">
+            <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Camera 02
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="lv-toolbar">
+      <button class="lv-tool-btn" id="btn-snapshot" title="Snapshot" aria-label="Take snapshot">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span class="lv-tool-label">Snapshot</span>
+      </button>
+
+      <button class="lv-tool-btn" id="btn-record" title="Record" aria-label="Toggle recording">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9"/>
+          <circle cx="12" cy="12" r="4" style="fill:currentColor;stroke:none"/>
+        </svg>
+        <span class="lv-tool-label">Record</span>
+      </button>
+
+      <button class="lv-tool-btn" id="btn-ptz" title="PTZ Control" aria-label="Pan-Tilt-Zoom control">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4M18 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+        <span class="lv-tool-label">PTZ</span>
+      </button>
+
+      <button class="lv-tool-btn" id="btn-change-cam" title="Change Camera" aria-label="Switch camera angle">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          <path d="M1 18l5-5 3 3 5-6 4 5"/>
+        </svg>
+        <span class="lv-tool-label">Camera</span>
+      </button>
+    </div>
+  </div><!-- /.lv-video-panel -->
+
+  <!-- RIGHT: Live Stats panel -->
+  <div class="section-panel lv-stats-panel">
+
+    <div class="lv-stats-header">
+      <span class="lv-stats-title">Traffic State</span>
+      <span class="lv-state-badge badge-high" id="lv-state-badge">
+        <span class="state-dot"></span>
+        <span id="lv-state-text">High</span>
+      </span>
+    </div>
+
+    <div class="lv-stats-body">
+
+      <div class="lv-stat-row">
+        <div class="lv-stat-icon pcu-icon">
+          <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <div class="lv-stat-info">
+          <span class="lv-stat-label">PCU</span>
+          <span class="lv-stat-value" id="lv-pcu">48</span>
+        </div>
+      </div>
+
+      <div class="lv-stat-row">
+        <div class="lv-stat-icon queue-icon">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </div>
+        <div class="lv-stat-info">
+          <span class="lv-stat-label">Queue Length</span>
+          <span class="lv-stat-value" id="lv-queue">72 <span class="lv-stat-unit">m</span></span>
+        </div>
+      </div>
+
+      <div class="lv-stat-row">
+        <div class="lv-stat-icon speed-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="lv-stat-info">
+          <span class="lv-stat-label">Avg Speed</span>
+          <span class="lv-stat-value" id="lv-speed">18 <span class="lv-stat-unit">km/h</span></span>
+        </div>
+      </div>
+
+    </div><!-- /.lv-stats-body -->
+
+    <div class="lv-stats-footer">
+      <span class="lv-updated-label">Last Updated</span>
+      <span class="lv-updated-time" id="lv-last-updated">—</span>
+    </div>
+
+  </div><!-- /.lv-stats-panel -->
+
+</div><!-- /.lv-main-grid -->
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  var LV_INITIAL_JUNCTION = "{{ selected_junction | e }}";
+</script>
+<script src="{{ url_for('static', filename='js/live-video.js') }}"></script>
+{% endblock %}

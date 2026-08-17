@@ -1,0 +1,51 @@
+{
+  "source": {
+    "id": "vnit",
+    "name": "VNIT Nagpur",
+    "short_name": "VNIT",
+    "lat": 21.123028,
+    "lon": 79.051449
+  },
+  "destinations": [
+    {
+      "id": "aiims",
+      "name": "AIIMS Nagpur",
+      "short_name": "AIIMS",
+      "lat": 21.036856,
+      "lon": 79.027517,
+      "route_id": "vnit_to_aiims",
+      "baseline_time_minutes": 30,
+      "prototype_optimized_time_minutes": 15
+    },
+    {
+      "id": "lata_mangeshkar",
+      "name": "Lata Mangeshkar Hospital",
+      "short_name": "LMH",
+      "lat": 21.101927,
+      "lon": 79.002269,
+      "route_id": "vnit_to_lata_mangeshkar",
+      "baseline_time_minutes": 28,
+      "prototype_optimized_time_minutes": 14
+    },
+    {
+      "id": "gmc",
+      "name": "Government Medical College & Hospital",
+      "short_name": "GMC",
+      "lat": 21.129292,
+      "lon": 79.096103,
+      "route_id": "vnit_to_gmc",
+      "baseline_time_minutes": 20,
+      "prototype_optimized_time_minutes": 10
+    }
+  ],
+  "vms_trigger_distance_km": 1.5,
+  "junction_trigger_distance_km": 0.3,
+  "junction_passed_distance_km": 0.05,
+  "simulation_speed_kmh_min": 40,
+  "simulation_speed_kmh_max": 60,
+  "anpr_trigger": {
+    "type": "junction_passed",
+    "sequence": 1,
+    "description": "ANPR demo starts after ambulance passes the first junction on any route"
+  }
+}

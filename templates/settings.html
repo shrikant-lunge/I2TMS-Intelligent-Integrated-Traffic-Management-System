@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block page_title %}Settings — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page Header ──────────────────────────────────────────────────────── -->
+<div class="se-page-header">
+  <div>
+    <h1 class="se-page-title">Settings</h1>
+    <p class="se-page-subtitle">Configure ITMS system defaults, device tables, and user accounts</p>
+  </div>
+</div>
+
+<!-- ── Tab Navigation ────────────────────────────────────────────────────── -->
+<div class="se-tab-bar" role="tablist">
+  <button class="se-tab-btn active" data-tab="general" role="tab" aria-selected="true" aria-controls="panel-general">General</button>
+  <button class="se-tab-btn" data-tab="junctions" role="tab" aria-selected="false" aria-controls="panel-junctions">Junctions</button>
+  <button class="se-tab-btn" data-tab="signals" role="tab" aria-selected="false" aria-controls="panel-signals">Signals</button>
+  <button class="se-tab-btn" data-tab="vms" role="tab" aria-selected="false" aria-controls="panel-vms">VMS</button>
+  {% if is_admin %}
+  <button class="se-tab-btn" data-tab="users" role="tab" aria-selected="false" aria-controls="panel-users">Users</button>
+  {% endif %}
+  <button class="se-tab-btn" data-tab="notifications" role="tab" aria-selected="false">Notifications</button>
+</div>
+
+<!-- ── Tab Panels Container ──────────────────────────────────────────────── -->
+<div class="se-panels-wrap">
+
+  <!-- 1. GENERAL TAB PANEL -->
+  <div class="se-tab-panel active" id="panel-general" role="tabpanel">
+    <div class="two-col">
+      <!-- Left: System Settings -->
+      <section class="panel">
+        <div class="panel-header"><span class="icon-badge icon-badge-blue">⚙️</span><h2>System Settings</h2></div>
+        
+        <form id="form-system-settings" class="settings-form">
+          <div class="field">
+            <label for="se-timezone">Time Zone</label>
+            <select id="se-timezone" class="se-select">
+              <option value="Asia/Kolkata">(IST) Asia/Kolkata</option>
+              <option value="UTC">UTC</option>
+              <option value="GMT">GMT</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="se-refresh-interval">Data Refresh Interval (sec)</label>
+            <input type="number" id="se-refresh-interval" class="se-input" min="1" max="300" required />
+          </div>
+
+          <div class="field">
+            <label for="se-default-dashboard">Default Dashboard View</label>
+            <select id="se-default-dashboard" class="se-select">
+              <option value="overview">Overview</option>
+              <option value="adaptive_signals">Adaptive Signals</option>
+              <option value="live_video">Live Video</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="se-units">Units</label>
+            <select id="se-units" class="se-select">
+              <option value="metric">Metric (km/h, meters)</option>
+              <option value="imperial">Imperial (mph, feet)</option>
+            </select>
+          </div>
+
+          <div class="banner-success" id="general-success-banner" hidden>✅ Settings saved successfully!</div>
+          <button type="submit" class="btn-primary btn-full save-btn">SAVE GENERAL SETTINGS</button>
+        </form>
+      </section>
+
+      <!-- Right: Notifications Toggle Panel -->
+      <section class="panel" id="panel-notifications-container">
+        <div class="panel-header"><span class="icon-badge icon-badge-amber">🔔</span><h2>Notification Alerts</h2></div>
+        
+        <div class="notification-options">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Email Alerts</span>
+              <p class="toggle-desc">Send automated reports & critical alerts to sysadmins via email</p>
+            </div>
+            <label class="switch" for="toggle-email">
+              <input type="checkbox" id="toggle-email" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">SMS Alerts</span>
+              <p class="toggle-desc">Dispatch SMS messages to response teams for severe alerts</p>
+            </div>
+            <label class="switch" for="toggle-sms">
+              <input type="checkbox" id="toggle-sms" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Push Notifications</span>
+              <p class="toggle-desc">Trigger web push notices inside the NMC operator consoles</p>
+            </div>
+            <label class="switch" for="toggle-push">
+              <input type="checkbox" id="toggle-push" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-label">Emergency Alerts</span>
+              <p class="toggle-desc">Preemptively notify operators when green corridors activate</p>
+            </div>
+            <label class="switch" for="toggle-emergency">
+              <input type="checkbox" id="toggle-emergency" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 2. JUNCTIONS TAB PANEL -->
+  <div class="se-tab-panel" id="panel-junctions" role="tabpanel">
+    <section class="panel">
+      <div class="panel-header-action">
+        <div class="panel-header"><h2>Junction Defaults & Cameras</h2></div>
+        <button class="btn-primary btn-sm btn-icon" id="btn-add-junction">+ Add Junction</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="se-table">
+          <thead>
+            <tr>
+              <th>Junction Name</th>
+              <th>Status</th>
+              <th>Camera Feed URL</th>
+              <th>Last Updated</th>
+              <th style="width:100px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-junctions-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- 3. SIGNALS TAB PANEL -->
+  <div class="se-tab-panel" id="panel-signals" role="tabpanel">
+    <section class="panel" style="max-width: 600px; margin: 0 auto;">
+      <div class="panel-header"><span class="icon-badge icon-badge-green">📶</span><h2>Signal Timing Defaults</h2></div>
+      
+      <form id="form-signal-timing" class="settings-form">
+        <div class="field">
+          <label for="se-cycle-time">Default Cycle Time (sec)</label>
+          <input type="number" id="se-cycle-time" class="se-input" min="30" max="300" required />
+          <span class="field-desc">Base duration of full 4-phase cycle rotation</span>
+        </div>
+
+        <div class="field">
+          <label for="se-min-phase">Min Phase Duration (sec)</label>
+          <input type="number" id="se-min-phase" class="se-input" min="5" max="60" required />
+          <span class="field-desc">Absolute minimum green light duration for safety margins</span>
+        </div>
+
+        <div class="field">
+          <label for="se-max-phase">Max Phase Duration (sec)</label>
+          <input type="number" id="se-max-phase" class="se-input" min="15" max="180" required />
+          <span class="field-desc">Absolute cap on any single green phase during high congestion</span>
+        </div>
+
+        <div class="banner-success" id="signals-success-banner" hidden>✅ Signal defaults updated!</div>
+        <button type="submit" class="btn-primary btn-full save-btn">SAVE TIMING DEFAULTS</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- 4. VMS TAB PANEL -->
+  <div class="se-tab-panel" id="panel-vms" role="tabpanel">
+    <section class="panel">
+      <div class="panel-header-action">
+        <div class="panel-header"><h2>VMS Board Displays</h2></div>
+        <button class="btn-primary btn-sm btn-icon" id="btn-add-vms">+ Add VMS Board</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="se-table">
+          <thead>
+            <tr>
+              <th>VMS ID</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Current Message</th>
+              <th style="width:100px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-vms-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- 5. USERS TAB PANEL (Admin only) -->
+  {% if is_admin %}
+  <div class="se-tab-panel" id="panel-users" role="tabpanel">
+    <section class="panel">
+      <div class="panel-header-action">
+        <div class="panel-header"><h2>User Accounts Administration</h2></div>
+        <button class="btn-primary btn-sm btn-icon" id="btn-add-user">+ Add User Account</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="se-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Last Login</th>
+              <th>Created</th>
+              <th style="width:200px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-users-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- ── Modal Overlays (CRUD Modals) ──────────────────────────────────────── -->
+<!-- Add/Edit Junction Modal -->
+<div class="modal" id="modal-junction" hidden>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-junction-title">Add/Edit Junction</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-junction')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-junction">
+          <input type="hidden" id="modal-junction-id" />
+          <div class="field">
+            <label for="modal-junction-name">Name</label>
+            <input type="text" id="modal-junction-name" class="se-input" placeholder="e.g. Junction Z" required />
+          </div>
+          <div class="field">
+            <label for="modal-junction-status">Status</label>
+            <select id="modal-junction-status" class="se-select">
+              <option value="low">Low (Optimal)</option>
+              <option value="moderate">Moderate</option>
+              <option value="high">High (Heavy Congestion)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="modal-junction-url">Camera Feed URL</label>
+            <input type="text" id="modal-junction-url" class="se-input" placeholder="e.g. /static/img/cam_z.jpg" />
+          </div>
+          <button type="submit" class="btn-primary btn-full">SAVE JUNCTION</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit VMS Modal -->
+<div class="modal" id="modal-vms" hidden>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-vms-title">Add/Edit VMS Board</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-vms')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-vms">
+          <input type="hidden" id="modal-vms-db-id" />
+          <div class="field">
+            <label for="modal-vms-id">VMS ID</label>
+            <input type="text" id="modal-vms-id" class="se-input" placeholder="e.g. VMS-25" required />
+          </div>
+          <div class="field">
+            <label for="modal-vms-location">Location</label>
+            <input type="text" id="modal-vms-location" class="se-input" placeholder="e.g. Dharampeth Road" required />
+          </div>
+          <div class="field">
+            <label for="modal-vms-status">Status</label>
+            <select id="modal-vms-status" class="se-select">
+              <option value="active">Active</option>
+              <option value="offline">Offline</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="modal-vms-message">Current Message</label>
+            <input type="text" id="modal-vms-message" class="se-input" placeholder="e.g. ROADWORK AHEAD" />
+          </div>
+          <button type="submit" class="btn-primary btn-full">SAVE VMS BOARD</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal" id="modal-user" hidden>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create New User Account</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-user')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-user">
+          <div class="field">
+            <label for="modal-user-username">Username</label>
+            <input type="text" id="modal-user-username" class="se-input" placeholder="e.g. operator-jane" required />
+          </div>
+          <div class="field">
+            <label for="modal-user-password">Temporary Password</label>
+            <input type="password" id="modal-user-password" class="se-input" placeholder="Must be at least 6 chars" required />
+          </div>
+          <div class="field">
+            <label for="modal-user-role">Role</label>
+            <select id="modal-user-role" class="se-select">
+              <option value="operator">Operator (Standard)</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary btn-full">CREATE USER</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal" id="modal-reset" hidden>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Reset User Password</h3>
+        <button type="button" class="modal-close" onclick="closeModal('modal-reset')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-reset-password">
+          <input type="hidden" id="modal-reset-user-id" />
+          <div class="field">
+            <label>Username</label>
+            <div class="readonly-field" id="modal-reset-username">—</div>
+          </div>
+          <div class="field">
+            <label for="modal-reset-new-password">New Password</label>
+            <input type="password" id="modal-reset-new-password" class="se-input" placeholder="Enter new password" required />
+          </div>
+          <button type="submit" class="btn-primary btn-full">RESET PASSWORD</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── System Status Footer ──────────────────────────────────────────────── -->
+<footer class="se-footer">
+  <div class="se-footer-row">
+    <div class="se-status-indicator">
+      <span class="indicator-dot online" id="status-backend"></span>
+      <span class="indicator-label">Backend: <strong id="lbl-backend">Online</strong></span>
+    </div>
+    <div class="se-status-indicator">
+      <span class="indicator-dot online" id="status-database"></span>
+      <span class="indicator-label">Database: <strong id="lbl-database">Online</strong></span>
+    </div>
+    <div class="se-status-indicator">
+      <span class="indicator-dot online" id="status-ai"></span>
+      <span class="indicator-label">AI Service: <strong id="lbl-ai">Online</strong></span>
+    </div>
+    <div class="se-footer-timestamp">
+      Last Updated: <span id="se-status-time">—</span>
+    </div>
+  </div>
+</footer>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

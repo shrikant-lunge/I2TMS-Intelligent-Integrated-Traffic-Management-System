@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambulance Dashboard - I²TMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ambulance.css') }}">
+    <!-- Leaflet CSS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="dark-theme ambulance-theme">
+    <div class="ambulance-container">
+        <!-- Header -->
+        <header class="ambulance-header">
+            <div class="logo-area">
+                <i class="fas fa-ambulance pulse"></i>
+                <h1>I²TMS Emergency Unit</h1>
+            </div>
+            <div class="status-indicator" id="network-status">
+                <span class="dot online"></span> Connected
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="ambulance-grid">
+            <!-- Left Column: Controls -->
+            <div class="controls-panel">
+                <div class="card glass-card">
+                    <h3>Emergency Route Selection</h3>
+                    
+                    <form id="route-form">
+                        <div class="form-group">
+                            <label for="destination">Select Hospital Destination</label>
+                            <select id="destination" class="glass-input" required>
+                                <option value="" disabled selected>-- Select Destination --</option>
+                                <option value="21.1458,79.0882">Govt Medical College & Hospital</option>
+                                <option value="21.1260,79.0467">AIIMS Nagpur</option>
+                                <option value="21.1023,78.9912">Lata Mangeshkar Hospital</option>
+                            </select>
+                        </div>
+                        
+                        <div class="route-stats hidden" id="route-stats">
+                            <div class="stat-box">
+                                <span class="label">Distance</span>
+                                <span class="value" id="stat-distance">-- km</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="label">Baseline ETA</span>
+                                <span class="value" id="stat-baseline">-- min</span>
+                            </div>
+                            <div class="stat-box highlight">
+                                <span class="label">Optimized ETA</span>
+                                <span class="value text-success" id="stat-optimized">-- min</span>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="button" id="btn-calculate" class="btn btn-secondary">
+                                <i class="fas fa-route"></i> Calculate Route
+                            </button>
+                            <button type="submit" id="btn-start" class="btn btn-danger" disabled>
+                                <i class="fas fa-siren-on"></i> ACTIVATE CORRIDOR
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card glass-card hidden" id="active-status-card">
+                    <div class="active-alert">
+                        <i class="fas fa-exclamation-triangle fa-2x blink"></i>
+                        <div>
+                            <h3>CORRIDOR ACTIVE</h3>
+                            <p>Priority signals activated ahead.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar bg-success" id="trip-progress" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>0 km</span>
+                            <span id="trip-remaining">-- km to go</span>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-end" class="btn btn-warning w-100 mt-2">
+                        <i class="fas fa-flag-checkered"></i> ARRIVED - DEACTIVATE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Map -->
+            <div class="map-panel">
+                <div class="card glass-card map-card">
+                    <div id="ambulance-map" class="map-container"></div>
+                    <div class="map-overlay">
+                        <div class="speed-indicator">
+                            <span id="current-speed">0</span>
+                            <small>km/h</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/ambulance.js') }}"></script>
+</body>
+</html>

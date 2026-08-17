@@ -1,0 +1,98 @@
+{
+  "route_id": "vnit_to_gmc_nagpur",
+  "source": {
+    "name": "VNIT Nagpur",
+    "lat": 21.123028,
+    "lon": 79.051449
+  },
+  "destination": {
+    "name": "GMC Nagpur (Government Medical College & Hospital)",
+    "lat": 21.126008,
+    "lon": 79.094428
+  },
+  "baseline_time_minutes": null,
+  "prototype_optimized_time_minutes": null,
+  "INSTRUCTIONS": "baseline_time_minutes and prototype_optimized_time_minutes are left blank — fill in after verifying the OSRM route on the map. ambulance_approach values are set based on the direction of travel between consecutive junction coordinates.",
+  "junctions": [
+    {
+      "id": "J01",
+      "name": "Mate Chowk",
+      "lat": 21.121672249798287,
+      "lon": 79.0564106139281,
+      "ambulance_approach": "west-northwest",
+      "sequence": 1
+    },
+    {
+      "id": "J02",
+      "name": "Sir Visweswarayya Chowk",
+      "lat": 21.124936191332587,
+      "lon": 79.05893408576793,
+      "ambulance_approach": "southwest",
+      "sequence": 2
+    },
+    {
+      "id": "J03",
+      "name": "Dindayal Upadhyay Chowk",
+      "lat": 21.126183509797094,
+      "lon": 79.06391319721983,
+      "ambulance_approach": "west-southwest",
+      "sequence": 3
+    },
+    {
+      "id": "J04",
+      "name": "Swargiya Annabhau Sathe Chowk",
+      "lat": 21.12698693371166,
+      "lon": 79.06850621374456,
+      "ambulance_approach": "west-southwest",
+      "sequence": 4
+    },
+    {
+      "id": "J05",
+      "name": "Nagpur-Chandrapur Road",
+      "lat": 21.128614458617438,
+      "lon": 79.07568986168602,
+      "ambulance_approach": "west-southwest",
+      "sequence": 5
+    },
+    {
+      "id": "J06",
+      "name": "Rail Blvd",
+      "lat": 21.125565217088127,
+      "lon": 79.08160771256647,
+      "ambulance_approach": "west-northwest",
+      "sequence": 6
+    },
+    {
+      "id": "J07",
+      "name": "Ajni",
+      "lat": 21.12473358415155,
+      "lon": 79.08726424180726,
+      "ambulance_approach": "west",
+      "sequence": 7
+    },
+    {
+      "id": "J08",
+      "name": "Congress Back Karyalay",
+      "lat": 21.12663414141668,
+      "lon": 79.09099695777145,
+      "ambulance_approach": "west-southwest",
+      "sequence": 8
+    }
+  ],
+  "vms": [
+    {
+      "id": "VMS01",
+      "name": "VMS - Dindayal Upadhyay Chowk",
+      "lat": 21.126183509797094,
+      "lon": 79.06391319721983,
+      "sequence": 1
+    },
+    {
+      "id": "VMS02",
+      "name": "VMS - Rail Blvd",
+      "lat": 21.125565217088127,
+      "lon": 79.08160771256647,
+      "sequence": 2
+    }
+  ]
+}

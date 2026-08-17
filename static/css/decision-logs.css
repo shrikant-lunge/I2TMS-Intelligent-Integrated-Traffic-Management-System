@@ -1,0 +1,280 @@
+/* =========================================================
+   I²TMS — Decision Logs (Screen 5) styles
+   ========================================================= */
+
+/* ── Page Header ────────────────────────────────────────── */
+.page-header {
+  margin-bottom: 20px;
+}
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A2942;
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 12.5px;
+  color: #6B7280;
+  margin-top: 3px;
+}
+
+/* ── Controls/Filters Row ───────────────────────────────── */
+.dl-controls-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.controls-left {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.selector-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dl-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #fff;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 34px 8px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1A2942;
+  cursor: pointer;
+  min-width: 160px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.dl-select:focus {
+  outline: none;
+  border-color: #0EA5A0;
+  box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+}
+
+.select-caret {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  color: #6B7280;
+}
+.select-caret svg {
+  width: 14px; height: 14px;
+  stroke: currentColor; fill: none;
+  stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+  display: block;
+}
+
+/* ── Table Card ─────────────────────────────────────────── */
+.dl-table-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.dl-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.dl-table th {
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+
+.dl-table td {
+  padding: 14px;
+  color: #1A2942;
+  border-bottom: 1px solid #F3F4F6;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s;
+}
+
+.dl-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Row Override highlight: subtle left accent */
+.dl-row-override td:first-child {
+  border-left: 4px solid #FFB020;
+}
+
+/* Row Emergency highlight: subtle left accent */
+.dl-row-emergency td:first-child {
+  border-left: 4px solid #FF4757;
+}
+
+/* Badges for Decision Type */
+.badge-decision {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-decision.adaptive {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+.badge-decision.manual_override {
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FCD34D;
+}
+.badge-decision.emergency {
+  background: #FEE2E2;
+  color: #EF4444;
+  border: 1px solid #FCA5A5;
+}
+
+/* Badges for Applied By */
+.applied-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.applied-badge.system {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+.applied-badge.operator {
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FCD34D;
+}
+.applied-badge.emergency {
+  background: #FEE2E2;
+  color: #EF4444;
+  border: 1px solid #FCA5A5;
+}
+
+/* Recommended plan compact styling */
+.plan-summary {
+  font-family: monospace;
+  font-size: 12.5px;
+  color: #4B5563;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* ── Pagination Footer ──────────────────────────────────── */
+.dl-pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid #F3F4F6;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dl-pagination-info {
+  font-size: 13px;
+  color: #6B7280;
+}
+.dl-pagination-info span {
+  font-weight: 600;
+  color: #1A2942;
+}
+
+.dl-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dl-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  background: #fff;
+  color: #4B5563;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.18s ease;
+}
+.dl-page-btn:hover:not(.disabled):not(.active) {
+  background: #F3F4F6;
+  border-color: #9CA3AF;
+  color: #1A2942;
+}
+.dl-page-btn.active {
+  background: #1A2942;
+  color: #fff;
+  border-color: #1A2942;
+  cursor: default;
+}
+.dl-page-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #F9FAFB;
+}
+
+/* ── Skeleton ─────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E9EAEC 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 650px) {
+  .dl-controls-row { flex-direction: column; align-items: stretch; }
+  .controls-left { width: 100%; flex-direction: column; align-items: stretch; }
+  .dl-select { width: 100%; }
+  .dl-pagination-footer { flex-direction: column; align-items: center; text-align: center; }
+}

@@ -1,0 +1,336 @@
+/* =========================================================
+   I²TMS — Reports Page (Screen 11) styles
+   ========================================================= */
+
+[hidden] { display: none !important; }
+
+/* ── Page header controls ── */
+.rp-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.rp-page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A2942;
+  line-height: 1.2;
+}
+
+.rp-page-subtitle {
+  font-size: 12.5px;
+  color: #6B7280;
+  margin-top: 3px;
+}
+
+/* ── Report controls row (Screen 11) ── */
+.report-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' width='14' height='14' xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%236B7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 34px 8px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1A2942;
+  cursor: pointer;
+  min-width: 150px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.custom-select:focus {
+  outline: none;
+  border-color: #0EA5A0;
+  box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+}
+
+.custom-range-fields {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-date-input {
+  background: #fff;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1A2942;
+  outline: none;
+  min-width: 140px;
+  height: 38px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.rp-date-input:focus {
+  border-color: #0EA5A0;
+  box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Reports grid ── */
+.rp-types-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .rp-types-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Report Card element */
+.rp-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.rp-card:hover {
+  border-color: #9CA3AF;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+.rp-card.selected {
+  border-color: #0EA5A0;
+  background: #F0FDFD;
+  box-shadow: 0 4px 14px rgba(14,165,160,0.08);
+}
+
+.rp-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rp-card-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
+
+.rp-card-icon.bg-blue   { background: #EFF6FF; color: #3B82F6; }
+.rp-card-icon.bg-green  { background: #F0FDF4; color: #10B981; }
+.rp-card-icon.bg-amber  { background: #FFFBEB; color: #F59E0B; }
+.rp-card-icon.bg-red    { background: #FEE2E2; color: #EF4444; }
+
+.rp-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rp-card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1A2942;
+  margin-bottom: 4px;
+}
+
+.rp-card-desc {
+  font-size: 12px;
+  color: #6B7280;
+  line-height: 1.4;
+}
+
+/* ── Generate Action row ── */
+.rp-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.rp-btn-generate {
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 12px 28px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 200px;
+  border-radius: 8px;
+  transition: all 0.18s;
+}
+
+.rp-btn-generate:disabled {
+  background: #E5E7EB;
+  color: #9CA3AF;
+  border-color: #E5E7EB;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.rp-error-banner {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid rgba(220,38,38,0.2);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  flex: 1;
+  max-width: 600px;
+}
+
+/* ── Preview Panel (white card) ── */
+.rp-preview-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  margin-top: 20px;
+  animation: slideUp 0.3s ease-out;
+  padding: 24px;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rp-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #F3F4F6;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.rp-preview-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1A2942;
+}
+
+.rp-preview-sub {
+  font-size: 12.5px;
+  color: #6B7280;
+  margin-top: 2px;
+}
+
+.rp-preview-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.rp-btn-download {
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+/* Preview Stats Tile Layout */
+.rp-preview-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .rp-preview-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .rp-preview-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rp-stat-tile {
+  background: #F9FAFB;
+  border: 1px solid #F0F1F3;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rp-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A2942;
+}

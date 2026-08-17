@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — I²TMS</title>
+  <meta name="description" content="Sign in to the Intelligent Traffic & Transportation Management System operated by Nagpur Municipal Corporation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+</head>
+<body>
+
+  <!-- Subtle white wash overlay (very light, not dark) -->
+  <div class="bg-overlay" aria-hidden="true"></div>
+
+  <main class="page-wrapper" role="main">
+    <div class="login-card" role="region" aria-label="Login form">
+
+      <!-- ── Emblem badge ── -->
+      <div class="emblem-wrap">
+        <img
+          src="{{ url_for('static', filename='img/emblem.png') }}"
+          alt="NMC Nagpur — I²TMS Official Seal"
+          class="emblem-img"
+          width="80"
+          height="80"
+        />
+      </div>
+
+      <!-- ── Brand name ── -->
+      <h1 class="brand-title">I²TMS</h1>
+      <p class="brand-subtitle">Intelligent Traffic &amp; Transportation Management System</p>
+
+      <!-- ── Divider ── -->
+      <div class="card-divider" aria-hidden="true"></div>
+
+      <!-- ── Error banner ── -->
+      {% if error %}
+      <div class="error-banner" role="alert" id="error-banner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <!-- ── Form ── -->
+      <form id="login-form" method="POST" action="{{ url_for('auth.login') }}" novalidate>
+
+        <h2 class="form-heading">Login to your account</h2>
+
+        <!-- Username -->
+        <div class="field-group" id="username-group">
+          <label for="username" class="field-label">Username</label>
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="field-input"
+              placeholder="Enter username"
+              autocomplete="username"
+              value="{{ request.form.get('username', '') }}"
+            />
+            <!-- Person icon (right) -->
+            <span class="input-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+          </div>
+          <span class="field-error" id="username-error" aria-live="polite"></span>
+        </div>
+
+        <!-- Password -->
+        <div class="field-group" id="password-group">
+          <label for="password" class="field-label">Password</label>
+          <div class="input-wrapper">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="field-input"
+              placeholder="Enter password"
+              autocomplete="current-password"
+            />
+            <!-- Eye toggle (right) -->
+            <button
+              type="button"
+              class="input-icon eye-toggle"
+              id="eye-toggle"
+              aria-label="Show password"
+              tabindex="0"
+            >
+              <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" width="17" height="17"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" width="17" height="17"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="hidden">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="password-error" aria-live="polite"></span>
+        </div>
+
+        <!-- Remember me + Forgot password -->
+        <div class="extras-row">
+          <label class="remember-label" for="remember">
+            <input type="checkbox" id="remember" name="remember" class="remember-check" />
+            <span class="custom-check" aria-hidden="true"></span>
+            Remember me
+          </label>
+          <a href="#" class="forgot-link" id="forgot-link">Forgot Password?</a>
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" class="login-btn" id="login-btn">
+          <span class="btn-text">LOGIN</span>
+          <span class="btn-spinner" id="btn-spinner" aria-hidden="true"></span>
+        </button>
+
+      </form>
+
+    </div><!-- /.login-card -->
+
+    <!-- Footer (outside card) -->
+    <footer class="page-footer">
+      &copy; NMC Nagpur &nbsp;|&nbsp; All rights reserved
+    </footer>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>

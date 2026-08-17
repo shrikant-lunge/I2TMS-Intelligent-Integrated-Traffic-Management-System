@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block page_title %}Overview — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page header ─────────────────────────────────────────────────────── -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Overview</h1>
+    <p class="page-subtitle">Nagpur Municipal Corporation — Real-time Traffic Intelligence</p>
+  </div>
+</div>
+
+<!-- ── Stat cards ──────────────────────────────────────────────────────── -->
+<div class="stat-grid">
+
+  <div class="stat-card" id="card-total-junctions">
+    <div class="stat-top">
+      <p class="stat-label">Total Junctions</p>
+      <span class="stat-icon blue" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="5"  r="2"/>
+          <circle cx="5"  cy="19" r="2"/>
+          <circle cx="19" cy="19" r="2"/>
+          <line x1="12" y1="7"  x2="5"  y2="17"/>
+          <line x1="12" y1="7"  x2="19" y2="17"/>
+          <line x1="5"  y1="19" x2="19" y2="19"/>
+        </svg>
+      </span>
+    </div>
+    <div class="stat-value" id="stat-total-junctions">—</div>
+  </div>
+
+  <div class="stat-card" id="card-active-junctions">
+    <div class="stat-top">
+      <p class="stat-label">Active Junctions</p>
+      <span class="stat-icon green" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </span>
+    </div>
+    <div class="stat-value" id="stat-active-junctions">—</div>
+  </div>
+
+  <div class="stat-card" id="card-avg-congestion">
+    <div class="stat-top">
+      <p class="stat-label">Avg. Congestion</p>
+      <span class="stat-icon amber" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8"  x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </span>
+    </div>
+    <div class="stat-value" id="stat-avg-congestion">—</div>
+  </div>
+
+  <div class="stat-card" id="card-active-corridors">
+    <div class="stat-top">
+      <p class="stat-label">Active Corridors</p>
+      <span class="stat-icon purple" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+        </svg>
+      </span>
+    </div>
+    <div class="stat-value" id="stat-active-corridors">—</div>
+  </div>
+
+</div>
+
+<!-- ── Live Junctions ──────────────────────────────────────────────────── -->
+<div class="section-panel live-junctions-panel">
+  <div class="section-header">
+    <h2 class="section-title">Live Junctions</h2>
+    <a href="{{ url_for('legacy.adaptive_signals') }}" class="section-link" id="view-all-junctions-link">View All</a>
+  </div>
+  <div class="junction-grid" id="junction-grid">
+    <!-- Skeleton cards -->
+    <div class="skeleton" style="height:170px;border-radius:10px;"></div>
+    <div class="skeleton" style="height:170px;border-radius:10px;"></div>
+    <div class="skeleton" style="height:170px;border-radius:10px;"></div>
+    <div class="skeleton" style="height:170px;border-radius:10px;"></div>
+  </div>
+</div>
+
+<!-- ── Bottom: Traffic Trend (60%) + Recent Alerts (40%) ─────────────── -->
+<div class="bottom-grid">
+
+  <!-- Traffic Trend -->
+  <div class="section-panel trend-panel">
+    <div class="section-header">
+      <h2 class="section-title">
+        Traffic Trend
+        <span class="section-title-sub">(Last 1 Hour)</span>
+      </h2>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="trend-chart" aria-label="Traffic congestion trend over the past hour" role="img"></canvas>
+    </div>
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>High</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#F59E0B"></span>Medium</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#10B981"></span>Low</span>
+    </div>
+  </div>
+
+  <!-- Recent Alerts -->
+  <div class="section-panel alerts-panel">
+    <div class="section-header">
+      <h2 class="section-title">Recent Alerts</h2>
+      <a href="{{ url_for('legacy.incidents_alerts') }}" class="section-link" id="view-all-alerts-link">View All</a>
+    </div>
+    <div class="alerts-list" id="alerts-list">
+      <!-- Skeleton rows -->
+      <div class="skeleton" style="height:12px;margin-bottom:14px;border-radius:4px;"></div>
+      <div class="skeleton" style="height:12px;margin-bottom:14px;border-radius:4px;width:82%;"></div>
+      <div class="skeleton" style="height:12px;border-radius:4px;width:68%;"></div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

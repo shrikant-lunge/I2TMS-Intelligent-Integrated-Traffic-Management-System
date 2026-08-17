@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block page_title %}Junction Analytics — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Controls Row ─────────────────────────────────────────────────────── -->
+<div class="an-controls-row">
+  <div class="controls-left">
+    
+    <!-- Junction Selector -->
+    <div class="selector-group">
+      <label for="junction-select" class="selector-label">Select Junction</label>
+      <div class="select-wrap">
+        <select id="junction-select" class="an-select" aria-label="Select junction">
+          {% for j in junctions %}
+          <option value="{{ j.name.split()[-1] }}"
+                  {% if j.name.split()[-1] == selected_junction %}selected{% endif %}>
+            {{ j.name }}
+          </option>
+          {% endfor %}
+        </select>
+        <span class="select-caret" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- Time Range Selector -->
+    <div class="selector-group">
+      <label for="range-select" class="selector-label">Time Range</label>
+      <div class="select-wrap">
+        <select id="range-select" class="an-select" aria-label="Select time range">
+          <option value="today"     {% if selected_range == 'today' %}selected{% endif %}>Today</option>
+          <option value="yesterday" {% if selected_range == 'yesterday' %}selected{% endif %}>Yesterday</option>
+          <option value="7days"     {% if selected_range == '7days' %}selected{% endif %}>Last 7 Days</option>
+          <option value="30days"    {% if selected_range == '30days' %}selected{% endif %}>Last 30 Days</option>
+        </select>
+        <span class="select-caret" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="controls-right">
+    <button class="btn-export" id="btn-export" title="Export CSV report">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export CSV
+    </button>
+  </div>
+</div>
+
+<!-- ── Stat Cards Row ───────────────────────────────────────────────────── -->
+<div class="an-stat-grid">
+
+  <div class="an-stat-card" id="card-waiting-time">
+    <span class="an-stat-label">Avg. Waiting Time</span>
+    <div class="an-stat-value-row">
+      <span class="an-stat-value" id="stat-wait-time">—</span>
+      <span class="an-trend-badge good" id="stat-wait-trend" style="display:none;">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+        </svg>
+        <span id="stat-wait-pct">12%</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="an-stat-card" id="card-queue-length">
+    <span class="an-stat-label">Avg. Queue Length</span>
+    <div class="an-stat-value-row">
+      <span class="an-stat-value" id="stat-queue-length">—</span>
+      <span class="an-trend-badge bad" id="stat-queue-trend" style="display:none;">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+        </svg>
+        <span id="stat-queue-pct">18%</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="an-stat-card" id="card-throughput">
+    <span class="an-stat-label">Throughput</span>
+    <div class="an-stat-value-row">
+      <span class="an-stat-value" id="stat-throughput">—</span>
+    </div>
+  </div>
+
+  <div class="an-stat-card" id="card-congestion">
+    <span class="an-stat-label">Congestion Level</span>
+    <div class="an-stat-value-row">
+      <span id="stat-congestion">—</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Main 65/35 Content Grid ─────────────────────────────────────────── -->
+<div class="an-main-grid">
+
+  <!-- LEFT: Traffic Trend Line Chart -->
+  <div class="section-panel trend-panel">
+    <div class="section-header">
+      <h2 class="section-title">
+        Traffic Trend
+        <span class="section-title-sub" id="trend-range-label">(Today)</span>
+      </h2>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="traffic-trend-chart" aria-label="Traffic congestion trend chart" role="img"></canvas>
+    </div>
+    <div class="chart-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>High</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#F59E0B"></span>Medium</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#10B981"></span>Low</span>
+    </div>
+  </div>
+
+  <!-- RIGHT: Vehicle Composition (PCU) Donut Chart -->
+  <div class="section-panel pcu-panel">
+    <div class="section-header">
+      <h2 class="section-title">Vehicle Composition (PCU)</h2>
+    </div>
+    <div class="donut-wrap">
+      <canvas id="pcu-donut-chart" aria-label="Vehicle composition donut chart" role="img"></canvas>
+      <div class="donut-center" id="donut-center">
+        <span class="donut-center-total" id="pcu-total-val">48 PCU</span>
+        <span class="donut-center-label">Total</span>
+      </div>
+    </div>
+    <div class="pcu-legend" id="pcu-legend">
+      <!-- Dynamic legend items -->
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Full-Width Signal Plan History Panel ─────────────────────────────── -->
+<div class="section-panel history-panel">
+  <div class="section-header">
+    <h2 class="section-title">Signal Plan History</h2>
+    <a href="#" class="section-link" id="view-all-history-link">View All</a>
+  </div>
+  <div class="table-wrap">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Phase A</th>
+          <th>Phase B</th>
+          <th>Phase C</th>
+          <th>Phase D</th>
+          <th>Applied By</th>
+        </tr>
+      </thead>
+      <tbody id="history-tbody">
+        <!-- Skeleton rows -->
+        <tr><td colspan="6"><div class="skeleton" style="height:14px;border-radius:4px;"></div></td></tr>
+        <tr><td colspan="6"><div class="skeleton" style="height:14px;border-radius:4px;"></div></td></tr>
+        <tr><td colspan="6"><div class="skeleton" style="height:14px;border-radius:4px;"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

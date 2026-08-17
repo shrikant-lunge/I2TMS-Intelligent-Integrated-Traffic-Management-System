@@ -1,0 +1,530 @@
+[hidden] { display: none !important; }
+
+/* ── Layout & Panels ── */
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.panel-header h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1A2942;
+  margin: 0;
+}
+
+.icon-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.icon-badge-blue { background: #EFF6FF; }
+.icon-badge-amber { background: #FFFBEB; }
+.icon-badge-green { background: #F0FDF4; }
+.icon-badge-red { background: #FEE2E2; }
+
+/* Form Fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4B5563;
+}
+
+.readonly-field {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: #1A2942;
+  color: #fff;
+  border: 1px solid #1A2942;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  outline: none;
+}
+.btn-primary:hover {
+  background: #24365A;
+  border-color: #24365A;
+}
+
+.btn-outline {
+  background: #fff;
+  color: #1A2942;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+.btn-outline:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn-delete:hover {
+  color: #DC2626;
+  border-color: rgba(220,38,38,0.25);
+  background: #FEE2E2;
+}
+
+.btn-xs {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  border-radius: 6px;
+}
+
+.se-page-header {
+  margin-bottom: 20px;
+}
+
+.se-page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1A2942;
+}
+
+.se-page-subtitle {
+  font-size: 12.5px;
+  color: #6B7280;
+  margin-top: 3px;
+}
+
+/* ── Tab Bar Navigation ── */
+.se-tab-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.se-tab-bar::-webkit-scrollbar { display: none; }
+
+.se-tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 18px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #6B7280;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.18s ease-in-out;
+  white-space: nowrap;
+}
+.se-tab-btn:hover {
+  color: #1A2942;
+}
+
+.se-tab-btn.active {
+  color: #0EA5A0;
+}
+.se-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 2px;
+  background: #0EA5A0;
+}
+
+/* ── Tab Panels ── */
+.se-panels-wrap {
+  margin-bottom: 80px; /* spacing for fixed footer */
+}
+
+.se-tab-panel {
+  display: none;
+  animation: tabFadeIn 0.25s ease-out;
+}
+.se-tab-panel.active {
+  display: block;
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Forms and Inputs ── */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.se-input, .se-select {
+  width: 100%;
+  height: 38px;
+  background: #fff;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1A2942;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.se-input:focus, .se-select:focus {
+  border-color: #0EA5A0;
+  box-shadow: 0 0 0 3px rgba(14,165,160,0.12);
+}
+
+.se-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' width='14' height='14' xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%236B7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 34px;
+}
+
+.field-desc {
+  font-size: 11.5px;
+  color: #6B7280;
+  margin-top: 4px;
+  display: block;
+}
+
+.banner-success {
+  background: #F0FDF4;
+  color: #15803D;
+  border: 1px solid rgba(21,128,61,0.15);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Toggle switches (Notifications panel) ── */
+.notification-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+.toggle-row:last-child {
+  border-bottom: none;
+}
+
+.toggle-info {
+  flex: 1;
+  padding-right: 16px;
+}
+
+.toggle-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1A2942;
+  display: block;
+}
+
+.toggle-desc {
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* Switch slider CSS */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0; width: 0; height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #D1D5DB;
+  border-radius: 24px;
+  transition: background-color 0.22s;
+}
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 18px; width: 18px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.22s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+input:checked + .slider {
+  background-color: #0EA5A0;
+}
+input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+/* ── Panel Header Action Row ── */
+.panel-header-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.panel-header-action .panel-header {
+  margin-bottom: 0;
+}
+
+/* ── Table Styling ── */
+.se-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.se-table th {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+
+.se-table td {
+  padding: 12px;
+  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
+  font-variant-numeric: tabular-nums;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.se-table tr:last-child td {
+  border-bottom: none;
+}
+.se-table tr:hover td {
+  background: #F9FAFB;
+}
+
+/* Status dots inside tables */
+.status-indicator-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.status-dot-sm {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.status-dot-sm.active   { background: #10B981; }
+.status-dot-sm.offline  { background: #9CA3AF; }
+.status-dot-sm.low      { background: #10B981; }
+.status-dot-sm.moderate { background: #F59E0B; }
+.status-dot-sm.high     { background: #EF4444; }
+
+/* ── Modals ── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,41,66,0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: modalFade 0.2s ease-out;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 440px;
+  padding: 16px;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F3F4F6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1A2942;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #9CA3AF;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover { color: #1A2942; }
+
+.modal-body {
+  padding: 20px;
+}
+
+@keyframes modalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Fixed Footer Status Bar ── */
+.se-footer {
+  position: fixed;
+  bottom: 0; left: 220px; right: 0;
+  height: 44px;
+  background: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 90;
+  transition: left var(--transition);
+}
+
+body.sidebar-collapsed .se-footer {
+  left: 64px;
+}
+
+@media (max-width: 960px) {
+  .se-footer { left: 0 !important; }
+}
+
+.se-footer-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.se-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.indicator-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.indicator-dot.online {
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+}
+.indicator-dot.offline {
+  background: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.2);
+}
+
+.indicator-label {
+  font-size: 11.5px;
+  color: #4B5563;
+}
+.indicator-label strong {
+  color: #1A2942;
+  font-weight: 700;
+}
+
+.se-footer-timestamp {
+  font-size: 11.5px;
+  color: #6B7280;
+  font-variant-numeric: tabular-nums;
+}

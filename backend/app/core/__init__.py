@@ -1,1 +1,0 @@
-# backend.app.core package

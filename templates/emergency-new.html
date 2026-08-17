@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block page_title %}I²TMS — New Emergency Request{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emergency.css') }}" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="emergency-container">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="{{ url_for('legacy.emergency_new') }}">Emergency Module</a> <span>&rsaquo;</span> <span>New Request</span>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header-icon">
+    <div class="icon-badge icon-badge-red">🚨</div>
+    <div>
+      <h1>New Emergency Request</h1>
+      <p class="page-sub">Dispatch an ambulance or fire truck with automatic signal preemption along the shortest route.</p>
+    </div>
+  </div>
+
+  <!-- STATE A: form -->
+  <div id="request-form-state">
+    <div class="two-col">
+      <section class="panel">
+        <div class="panel-header"><span class="icon-badge icon-badge-blue">🚚</span><h2>Vehicle & Route</h2></div>
+
+        <div class="field">
+          <label for="vehicle-type">Vehicle Type</label>
+          <select id="vehicle-type">
+            <option value="ambulance">&nbsp;🚑 Ambulance</option>
+            <option value="fire_truck">&nbsp;🚒 Fire Truck</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="vehicle-number">Vehicle Number</label>
+          <input type="text" id="vehicle-number" placeholder="e.g. MH-31 AB 1234">
+          <span class="field-error" hidden>Please enter a vehicle number.</span>
+        </div>
+
+        <div class="field autocomplete-field">
+          <label for="current-location">Current Location</label>
+          <div class="input-with-icon">
+            <input type="text" id="current-location" placeholder="e.g. VNIT Campus, Nagpur" autocomplete="off">
+            <button type="button" id="gps-btn" title="Use my current location">📍</button>
+          </div>
+          <div class="autocomplete-dropdown" id="current-location-dropdown" hidden></div>
+          <span class="field-error" hidden>Please enter a current location.</span>
+        </div>
+
+        <div class="field autocomplete-field">
+          <label for="destination">Destination</label>
+          <div class="input-with-icon">
+            <input type="text" id="destination" placeholder="e.g. Mayo Hospital, Nagpur" autocomplete="off">
+            <span class="static-icon">📍</span>
+          </div>
+          <div class="autocomplete-dropdown" id="destination-dropdown" hidden></div>
+          <span class="field-error" hidden>Please enter a destination.</span>
+        </div>
+
+        <div class="banner-error" id="form-banner" hidden></div>
+
+        <button type="button" class="btn-primary btn-full" id="submit-btn">🔗 FIND SHORTEST ROUTE</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header"><span class="icon-badge icon-badge-amber">⚡</span><h2>Request Details</h2></div>
+        <div class="field">
+          <label for="priority">Priority</label>
+          <select id="priority">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="priority-note" id="priority-note">● High — Urgent dispatch</div>
+
+        <div class="field">
+          <label>Request Time</label>
+          <div class="readonly-field">🕐 <span id="request-time">{{ now.strftime('%d %b %Y | %I:%M %p') }}</span></div>
+        </div>
+
+        <div class="info-banner">
+          ℹ️ The system will preempt traffic signals along the computed corridor and notify junction operators automatically.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- STATE B: created confirmation, hidden by default -->
+  <div id="request-created-state" hidden>
+    <section class="panel panel-success">
+      <div class="success-header">
+        <span class="icon-badge icon-badge-green">✅</span>
+        <div>
+          <h2>Emergency Request Created</h2>
+          <p class="page-sub">Corridor computed — signal preemption will begin once you proceed.</p>
+        </div>
+      </div>
+
+      <div class="created-summary-grid">
+        <div class="summary-tile"><span class="metric-label">Vehicle</span><span class="metric-value" id="cs-vehicle">—</span></div>
+        <div class="summary-tile"><span class="metric-label">Vehicle Number</span><span class="metric-value" id="cs-vehicle-number">—</span></div>
+        <div class="summary-tile"><span class="metric-label">Distance</span><span class="metric-value" id="cs-distance">—</span></div>
+        <div class="summary-tile"><span class="metric-label">ETA</span><span class="metric-value" id="cs-eta">—</span></div>
+        <div class="summary-tile"><span class="metric-label">Signals on Route</span><span class="metric-value" id="cs-signals">—</span></div>
+        <div class="summary-tile"><span class="metric-label">VMS Boards on Route</span><span class="metric-value" id="cs-vms">—</span></div>
+      </div>
+
+      <div class="route-endpoints">
+        <div><span class="metric-label">From</span> <span id="cs-from">—</span></div>
+        <div><span class="metric-label">To</span> <span id="cs-to">—</span></div>
+      </div>
+
+      <div class="created-actions">
+        <button class="btn-outline" id="btn-new-request">+ New Request</button>
+        <button class="btn-primary" id="btn-view-route">View Route Map &rarr;</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- STATE C: inline route map, hidden until "View Route Map" is clicked -->
+  <div id="route-map-state" hidden>
+    <section class="panel route-map-panel">
+      <div class="route-map-header">
+        <div>
+          <span class="ambulance-id-badge">Ambulance ID: <strong id="rm-vehicle-number">—</strong></span>
+          <span class="status-pill status-active" id="rm-status">Active</span>
+        </div>
+        <div class="route-map-header-right">
+          <label for="rm-eta-select" class="sr-only">ETA</label>
+          <select id="rm-eta-select" class="eta-select">
+            <option>ETA: <span id="rm-eta">—</span></option>
+          </select>
+          <button class="btn-danger" id="btn-end-corridor">END CORRIDOR</button>
+        </div>
+      </div>
+
+      <!-- 4-stat row -->
+      <div class="corridor-stats-row">
+        <div class="corridor-stat">
+          <span class="metric-label">Distance Remaining</span>
+          <span class="metric-value" id="rm-distance-remaining">—</span>
+        </div>
+        <div class="corridor-stat">
+          <span class="metric-label">ETA</span>
+          <span class="metric-value" id="rm-eta-stat">—</span>
+        </div>
+        <div class="corridor-stat">
+          <span class="metric-label">Signals Ahead</span>
+          <span class="metric-value" id="rm-signals-ahead">—</span>
+        </div>
+        <div class="corridor-stat">
+          <span class="metric-label">VMS Ahead</span>
+          <span class="metric-value" id="rm-vms-ahead">—</span>
+        </div>
+      </div>
+
+      <div class="route-map-body">
+        <div class="map-container" id="route-map-canvas"><!-- Leaflet map mounts here --></div>
+
+        <div class="route-map-sidebar">
+          <div class="panel-inset">
+            <h3>Route Details</h3>
+            <div class="route-detail-row"><span>Distance</span><span id="rm-distance">—</span></div>
+            <div class="route-detail-row"><span>Checkpoints</span><span id="rm-checkpoints">—</span></div>
+            <div class="route-detail-row"><span>Priority Status</span><span class="badge badge-green" id="rm-priority">Active</span></div>
+          </div>
+
+          <div class="panel-inset">
+            <h3>Legend</h3>
+            <div class="legend-row">🚑 <span>Ambulance</span></div>
+            <div class="legend-row">🟢 <span>Signal (Priority)</span></div>
+            <div class="legend-row">📶 <span>VMS (Active)</span></div>
+            <div class="legend-row">— <span>Route</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Corridor detail tables -->
+      <div class="corridor-tables">
+        <div class="table-block">
+          <h3>Upcoming Signals</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Junction</th>
+                <th>Distance</th>
+                <th>Status</th>
+                <th>Time to Reach</th>
+              </tr>
+            </thead>
+            <tbody id="upcoming-signals-body"></tbody>
+          </table>
+        </div>
+
+        <div class="table-block">
+          <h3>Active VMS Messages</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>VMS ID</th>
+                <th>Location</th>
+                <th>Message</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="active-vms-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/emergency-new.js') }}"></script>
+{% endblock %}

@@ -1,134 +1,34 @@
-# =========================
-# Environment / Secrets
-# =========================
-
-.env
-.env.*
-!.env.example
-
-# Google Cloud / Service Account credentials
-
-service-account.json
-credentials.json
-*-service-account.json
-*.pem
-*.key
-
-# =========================
 # Python
-# =========================
-
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
-.venv/
+*.pyc
 venv/
-env/
-ENV/
+.venv/
+yolov8n.pt
 
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+data/easyocr/model
 
-# =========================
-# Node / React
-# =========================
+# Environment & secrets
+.env
+*.db
+database/*.db
 
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
+# OS
+.DS_Store
+Thumbs.db
 
-# =========================
-# Frontend build files
-# =========================
-
-dist/
-build/
-.vite/
-.next/
-
-# =========================
 # IDE
-# =========================
-
 .vscode/
 .idea/
 
-# =========================
-# Operating System
-# =========================
+# Uploads / generated files
+static/uploads/*
+!static/uploads/.gitkeep
 
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# =========================
-# Logs
-# =========================
-
-*.log
-
-# =========================
-# Databases
-# =========================
-
-*.db
-*.sqlite
-*.sqlite3
-
-# =========================
-# AI / ML Models
-# =========================
-
+# Model weights (large binary files)
 *.pt
-*.pth
 *.onnx
 *.weights
 
-# =========================
-# Large Video / Media Files
-# =========================
+# Logs
+*.log
 
-*.mp4
-*.avi
-*.mov
-*.mkv
-*.webm
-
-# The ANPR module is an intentional, self-contained runtime dependency.
-!backend/anpr_demo/**/*.pt
-!backend/anpr_demo/demo.mp4
-!backend/anpr_demo/sample.avi
-
-# =========================
-# Generated Evidence / Output
-# =========================
-
-# Runtime data can contain recordings, generated evidence, and SQLite state.
-# Keep it local; scripts recreate the required folders when the app starts.
-data/
-/models/
-backend/.ultralytics/
-backend/tmp_*
-backend/sample_frame_*.png
-backend/anpr_demo/test.csv
-
-# This detector is a required, intentionally bundled ANPR runtime asset.
-!backend/anpr_demo/models/
-!backend/anpr_demo/models/license_plate_detector.pt
-
-data/evidence/
-data/outputs/
-outputs/
-tmp/
-temp/
-
-# =========================
-# Python generated files
-# =========================
-
-*.egg-info/
-.eggs/

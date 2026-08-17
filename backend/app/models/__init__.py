@@ -1,1 +1,0 @@
-# backend.app.models package

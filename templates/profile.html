@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block page_title %}My Profile — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}" />
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'none' %}
+
+<div class="pr-page-header">
+  <h1 class="pr-page-title">My Profile</h1>
+  <p class="pr-page-subtitle">View account credentials and update security settings</p>
+</div>
+
+<div class="pr-panels-wrap">
+  <!-- Profile Info Card -->
+  <section class="pr-panel">
+    <div class="pr-panel-header">
+      <span class="pr-badge">👤</span>
+      <h2>Account Information</h2>
+    </div>
+    
+    <div class="pr-info-grid">
+      <div class="pr-info-row">
+        <span class="pr-label">Username</span>
+        <span class="pr-val pr-highlight">{{ user.username }}</span>
+      </div>
+      <div class="pr-info-row">
+        <span class="pr-label">Access Role</span>
+        <span class="pr-val pr-badge-role">{{ user.role | capitalize }}</span>
+      </div>
+      <div class="pr-info-row">
+        <span class="pr-label">Last Login</span>
+        <span class="pr-val">{{ user.last_login_at.strftime('%d %b %Y, %I:%M %p') if user.last_login_at else '—' }}</span>
+      </div>
+      <div class="pr-info-row">
+        <span class="pr-label">Account Created</span>
+        <span class="pr-val">{{ user.created_at.strftime('%d %b %Y') }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Change Password Card -->
+  <section class="pr-panel">
+    <div class="pr-panel-header">
+      <span class="pr-badge pr-badge-key">🔑</span>
+      <h2>Change Password</h2>
+    </div>
+    
+    <form id="form-change-password" class="pr-form" onsubmit="return false;">
+      <div class="pr-field">
+        <label for="current-password">Current Password</label>
+        <input type="password" id="current-password" class="pr-input" placeholder="Verify current password" required />
+      </div>
+
+      <div class="pr-field">
+        <label for="new-password">New Password</label>
+        <input type="password" id="new-password" class="pr-input" placeholder="Enter new password" required />
+      </div>
+
+      <div class="pr-error-banner" id="password-error" hidden></div>
+      <div class="pr-success-banner" id="password-success" hidden>✅ Password updated successfully!</div>
+
+      <button type="submit" class="pr-btn-primary" id="btn-change-password">Update Password</button>
+    </form>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

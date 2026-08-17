@@ -1,0 +1,65 @@
+{
+  "route_id": "vnit_to_lata_mangeshkar",
+  "source": {
+    "name": "VNIT Nagpur",
+    "lat": 21.123028,
+    "lon": 79.051449
+  },
+  "destination": {
+    "name": "Lata Mangeshkar Hospital",
+    "lat": 21.101927,
+    "lon": 79.002269
+  },
+  "baseline_time_minutes": 28,
+  "prototype_optimized_time_minutes": 14,
+  "INSTRUCTIONS": "FILL IN real junction and VMS coordinates after verifying the OSRM route on the map.",
+  "junctions": [
+    {
+      "id": "J01",
+      "name": "Shankar Nagar Square",
+      "lat": 21.1242766,
+      "lon": 79.0447232,
+      "ambulance_approach": "west",
+      "sequence": 1
+    },
+    {
+      "id": "J02",
+      "name": "Hingna Tea Point",
+      "lat": 21.1216645,
+      "lon": 79.0308466,
+      "ambulance_approach": "east",
+      "sequence": 2
+    },
+    {
+      "id": "J03",
+      "name": "Lata Mangeshkar Hospital Gate",
+      "lat": 21.1005474,
+      "lon": 79.0046420,
+      "ambulance_approach": "northeast",
+      "sequence": 3
+    }
+  ],
+  "vms": [
+    {
+      "id": "VMS01",
+      "name": "VMS — Rachana Ring Road Junction",
+      "lat": 21.1217312,
+      "lon": 79.0305674,
+      "sequence": 1
+    },
+    {
+      "id": "VMS02",
+      "name": "VMS — Bansi Nagar",
+      "lat": 21.1162844,
+      "lon": 79.0130395,
+      "sequence": 2
+    },
+    {
+      "id": "VMS03",
+      "name": "VMS — Lokmanya Nagar",
+      "lat": 21.1109829,
+      "lon": 79.0021400,
+      "sequence": 3
+    }
+  ]
+}

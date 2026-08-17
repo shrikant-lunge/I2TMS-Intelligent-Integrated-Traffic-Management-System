@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block page_title %}I²TMS — Emergency Green Corridor{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emergency_corridor.css') }}" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="ec-admin-container">
+
+  <!-- ── Page Header ── -->
+  <div class="ec-page-header">
+    <div>
+      <h1>🚑 Emergency Green Corridor</h1>
+      <p>NMC Control Room — Real-time corridor monitoring &amp; signal coordination (Prototype / Simulation)</p>
+    </div>
+    <div class="ec-header-right">
+      <span class="ec-pill ec-pill-idle" id="ec-corridor-pill">
+        <span class="dot"></span>
+        <span id="ec-pill-text">IDLE</span>
+      </span>
+      <a href="{{ url_for('emergency_corridor.driver_screen') }}" target="_blank"
+         class="ec-btn ec-btn-ghost" style="text-decoration:none;">
+        🚑 Open Driver Screen
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Prototype notice ── -->
+  <div class="ec-prototype-notice">
+    ⚠ This is a software simulation prototype. Ambulance movement, traffic signals, and VMS boards
+    are virtual. Real-world deployment requires live GPS, signal controller integration, and physical VMS connectivity.
+  </div>
+
+  <!-- ── Setup / Control panel (shown before start) ── -->
+  <div id="ec-setup-panel">
+    <div class="ec-two-col" style="grid-template-columns:340px 1fr;">
+
+      <!-- Left: Setup form -->
+      <div>
+        <div class="ec-card">
+          <div class="ec-card-header">
+            <h2>🗺 Route Setup</h2>
+          </div>
+          <div class="ec-card-body">
+            <div class="ec-form-group">
+              <label>Source (Fixed)</label>
+              <div style="padding:9px 12px;background:#F9FAFB;border:1px solid var(--ec-border);border-radius:7px;font-size:0.88rem;color:var(--ec-muted);">
+                📍 VNIT Nagpur&nbsp; <small>(21.1230, 79.0514)</small>
+              </div>
+            </div>
+            <div class="ec-form-group">
+              <label for="ec-dest-select">Destination Hospital</label>
+              <select id="ec-dest-select" class="ec-select">
+                <option value="" disabled selected>— Select Hospital —</option>
+              </select>
+            </div>
+
+            <button class="ec-btn ec-btn-primary ec-btn-full" id="ec-btn-calculate" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+              CALCULATE EMERGENCY ROUTE
+            </button>
+
+            <div id="ec-route-ready-actions" class="ec-hidden" style="margin-top:10px;">
+              <hr class="ec-divider">
+              <div id="ec-route-summary" style="font-size:0.82rem;color:var(--ec-muted);margin-bottom:12px;"></div>
+              <button class="ec-btn ec-btn-danger ec-btn-full" id="ec-btn-start">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                START EMERGENCY CORRIDOR
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Route map preview -->
+      <div class="ec-card">
+        <div class="ec-card-header">
+          <h2>🗺 Route Map</h2>
+          <span id="ec-routing-mode-badge" class="ec-pill ec-pill-idle" style="display:none;"></span>
+        </div>
+        <div id="ec-admin-map"></div>
+      </div>
+
+    </div>
+  </div><!-- /#ec-setup-panel -->
+
+  <!-- ── Active corridor monitoring (shown after start) ── -->
+  <div id="ec-monitor-panel" class="ec-hidden">
+
+    <div class="ec-two-col">
+
+      <!-- Left: Map -->
+      <div>
+        <div class="ec-card">
+          <div class="ec-card-header">
+            <h2>
+              🗺 Live Corridor Map
+              <span class="ec-pill ec-pill-active" id="ec-map-pill">
+                <span class="dot"></span> ACTIVE
+              </span>
+            </h2>
+            <div style="display:flex;gap:8px;">
+              <button class="ec-btn ec-btn-amber" id="ec-btn-pause">⏸ Pause</button>
+              <button class="ec-btn ec-btn-ghost" id="ec-btn-reset">↺ Reset</button>
+            </div>
+          </div>
+          <div id="ec-admin-map-monitor"></div>
+
+          <!-- Progress bar under map -->
+          <div style="padding:12px 18px;border-top:1px solid var(--ec-border);background:#FAFAFA;">
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ec-muted);margin-bottom:4px;">
+              <span>VNIT Nagpur</span>
+              <span id="ec-progress-label">0%</span>
+              <span id="ec-dest-label-bar">Hospital</span>
+            </div>
+            <div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden;">
+              <div id="ec-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#0EA5A0,#22C55E);transition:width 0.8s ease;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANPR Panel -->
+        <div class="ec-card" style="margin-top:16px;" id="ec-anpr-panel">
+          <div class="ec-card-header">
+            <h2>📷 ANPR Camera Feed</h2>
+            <span class="ec-pill ec-pill-idle" id="ec-anpr-pill">Waiting…</span>
+          </div>
+          <div class="ec-card-body">
+            <!-- Waiting state -->
+            <div class="ec-anpr-waiting" id="ec-anpr-waiting">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <span>Waiting for ambulance to pass first junction…</span>
+            </div>
+
+            <!-- Video state -->
+            <div class="ec-anpr-video-wrap ec-hidden" id="ec-anpr-video-wrap">
+              <video id="ec-anpr-video"
+                     src="{{ url_for('static', filename='videos/anpr_demo.mp4') }}"
+                     playsinline muted
+                     style="width:100%;border-radius:8px;display:block;"></video>
+              <div class="ec-anpr-overlay">
+                <span class="dot"></span>
+                ANPR LIVE DETECTION
+              </div>
+            </div>
+
+            <div class="ec-card-header" style="border-top:1px solid var(--ec-border);padding:10px 0 8px;margin-top:2px;background:transparent;">
+              <h2 style="font-size:0.82rem;">Detection Log</h2>
+              <span class="ec-pill ec-pill-idle" id="ec-anpr-count-pill">0 detections</span>
+            </div>
+            <div class="ec-anpr-history" id="ec-anpr-history">
+              <div class="ec-anpr-empty" id="ec-anpr-empty">No detections yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Status sidebar -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Ambulance status -->
+        <div class="ec-card">
+          <div class="ec-card-header"><h2>🚑 Ambulance Status</h2></div>
+          <div class="ec-card-body">
+            <div class="ec-stats-grid">
+              <div class="ec-stat-tile">
+                <div class="ec-stat-tile-label">Speed</div>
+                <div class="ec-stat-tile-value teal" id="ec-live-speed">— km/h</div>
+              </div>
+              <div class="ec-stat-tile">
+                <div class="ec-stat-tile-label">ETA</div>
+                <div class="ec-stat-tile-value green" id="ec-live-eta">— min</div>
+              </div>
+              <div class="ec-stat-tile">
+                <div class="ec-stat-tile-label">Remaining</div>
+                <div class="ec-stat-tile-value" id="ec-live-dist">— km</div>
+              </div>
+              <div class="ec-stat-tile">
+                <div class="ec-stat-tile-label">Progress</div>
+                <div class="ec-stat-tile-value teal" id="ec-live-pct">0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current junction + signal -->
+        <div class="ec-card">
+          <div class="ec-card-header"><h2>🚦 Signal Status</h2></div>
+          <div class="ec-card-body">
+            <div class="ec-signal-indicator normal" id="ec-signal-indicator">
+              <div class="ec-signal-dot"></div>
+              <span id="ec-signal-text">Normal operation</span>
+            </div>
+
+            <div style="font-size:0.8rem;color:var(--ec-muted);margin-bottom:4px;">CURRENT JUNCTION</div>
+            <div style="font-weight:700;color:var(--ec-navy);font-size:0.95rem;margin-bottom:12px;" id="ec-current-junc">—</div>
+
+            <div style="font-size:0.8rem;color:var(--ec-muted);margin-bottom:4px;">NEXT JUNCTION</div>
+            <div style="font-weight:600;color:var(--ec-navy);font-size:0.88rem;margin-bottom:2px;" id="ec-next-junc">—</div>
+            <div style="font-size:0.75rem;color:var(--ec-muted);" id="ec-next-junc-dist"></div>
+          </div>
+        </div>
+
+        <!-- VMS status -->
+        <div class="ec-card">
+          <div class="ec-card-header"><h2>📶 VMS Status</h2></div>
+          <div class="ec-card-body">
+            <div class="ec-vms-board">
+              <span class="ec-vms-board-label" id="ec-vms-label">Active Route VMS</span>
+              <div class="ec-vms-text normal" id="ec-vms-text">DRIVE CAUTIOUSLY
+HAVE A GOOD DAY</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Junction list -->
+        <div class="ec-card">
+          <div class="ec-card-header"><h2>📍 Route Junctions</h2></div>
+          <div class="ec-card-body">
+            <div class="ec-junction-list" id="ec-junction-list">
+              <div style="color:var(--ec-muted);font-size:0.85rem;">Loading…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ETA comparison (visible after completion) -->
+        <div class="ec-card ec-hidden" id="ec-eta-card">
+          <div class="ec-card-header"><h2>⏱ ETA Analysis</h2></div>
+          <div class="ec-card-body">
+            <div class="ec-completion-banner ec-hidden" id="ec-completion-banner">
+              <h3>✅ Emergency Corridor Completed</h3>
+              <p>All junctions restored to normal adaptive signal operation.</p>
+            </div>
+            <div class="ec-eta-compare">
+              <div class="ec-eta-tile baseline">
+                <span class="ec-eta-tile-label">Baseline ETA</span>
+                <div class="ec-eta-tile-value" id="ec-eta-baseline">—</div>
+              </div>
+              <div class="ec-eta-tile optimized">
+                <span class="ec-eta-tile-label">Optimized ETA</span>
+                <div class="ec-eta-tile-value" id="ec-eta-optimized">—</div>
+              </div>
+              <div class="ec-eta-tile saved">
+                <span class="ec-eta-tile-label">Time Saved</span>
+                <div class="ec-eta-tile-value" id="ec-eta-saved">—</div>
+              </div>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;font-size:0.78rem;color:var(--ec-muted);">
+              <span>🚦 <strong id="ec-stat-junctions">0</strong> Junctions prioritised</span>
+              <span>📶 <strong id="ec-stat-vms">0</strong> VMS activated</span>
+              <span>🔍 <strong id="ec-stat-anpr">0</strong> ANPR detections</span>
+            </div>
+            <p style="font-size:0.72rem;color:var(--ec-muted);margin-top:8px;border-top:1px solid var(--ec-border);padding-top:8px;">
+              ⚠ ETA values are simulation estimates. Real-world performance depends on live signal controller integration, traffic conditions, and physical infrastructure.
+            </p>
+          </div>
+        </div>
+
+      </div><!-- /right sidebar -->
+    </div><!-- /ec-two-col -->
+  </div><!-- /#ec-monitor-panel -->
+
+</div><!-- /.ec-admin-container -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/emergency_admin.js') }}"></script>
+{% endblock %}

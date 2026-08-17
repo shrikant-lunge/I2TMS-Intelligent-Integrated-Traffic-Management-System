@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergency Navigation — I²TMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/emergency_corridor.css') }}?v=2" />
+</head>
+<body class="driver-screen">
+
+<div class="drv-layout">
+
+  <!-- ══════ HEADER ══════ -->
+  <header class="drv-header">
+    <div class="drv-header-brand">
+      <svg viewBox="0 0 24 24"><path d="M3 17h18M3 17l2-7h14l2 7M3 17v2a1 1 0 001 1h1a1 1 0 001-1v-2M16 17v2a1 1 0 001 1h1a1 1 0 001-1v-2M9 10h6M12 7v3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      EMERGENCY AMBULANCE NAVIGATION
+      <span class="drv-prototype-badge">SIMULATION</span>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <div class="drv-header-status">
+        <span class="dot"></span>
+        I²TMS Connected
+      </div>
+      <div class="drv-header-clock" id="drv-clock"></div>
+    </div>
+  </header>
+
+  <!-- ══════ LEFT PANEL ══════ -->
+  <aside class="drv-panel">
+
+    <!-- Source / Destination -->
+    <div class="drv-card">
+      <div class="drv-card-title">Route</div>
+
+      <!-- Source — fixed -->
+      <div class="drv-route-row">
+        <div class="drv-route-icon source">🏛</div>
+        <div>
+          <div class="drv-route-label">SOURCE</div>
+          <div class="drv-route-name">VNIT Nagpur</div>
+        </div>
+      </div>
+      <div class="drv-route-connector"></div>
+
+      <!-- Destination — select -->
+      <div class="drv-route-row">
+        <div class="drv-route-icon dest">🏥</div>
+        <div style="flex:1;">
+          <div class="drv-route-label">DESTINATION</div>
+          <div class="drv-select-wrap">
+            <select id="drv-dest-select" class="drv-select">
+              <option value="" disabled selected>— Select Hospital —</option>
+            </select>
+            <svg class="drv-select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status banner -->
+    <div class="drv-card" id="drv-status-banner-wrap">
+      <div class="drv-corridor-banner calculating drv-hidden" id="drv-banner-calculating">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Calculating Emergency Route…</span>
+      </div>
+      <div class="drv-corridor-banner active drv-hidden" id="drv-banner-active">
+        <svg viewBox="0 0 24 24" class="drv-blink"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>🚨 EMERGENCY CORRIDOR ACTIVE</span>
+      </div>
+      <div class="drv-corridor-banner completed drv-hidden" id="drv-banner-completed">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>EMERGENCY CORRIDOR COMPLETED</span>
+      </div>
+    </div>
+
+    <!-- Route stats -->
+    <div class="drv-card drv-hidden" id="drv-route-stats">
+      <div class="drv-card-title">Route Summary</div>
+      <div class="drv-stats-grid">
+        <div class="drv-stat-box">
+          <span class="drv-stat-label">Distance</span>
+          <span class="drv-stat-value teal" id="drv-stat-dist">—</span>
+        </div>
+        <div class="drv-stat-box">
+          <span class="drv-stat-label">Baseline ETA</span>
+          <span class="drv-stat-value" id="drv-stat-baseline">—</span>
+        </div>
+        <div class="drv-stat-box highlight">
+          <span class="drv-stat-label">Optimized ETA</span>
+          <span class="drv-stat-value green" id="drv-stat-eta">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="drv-card" id="drv-btn-area">
+      <button class="drv-btn drv-btn-calculate" id="drv-btn-calculate" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        CALCULATE EMERGENCY ROUTE
+      </button>
+      <button class="drv-btn drv-btn-start drv-hidden" id="drv-btn-start">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        START EMERGENCY
+      </button>
+      <button class="drv-btn drv-btn-pause drv-hidden" id="drv-btn-pause">⏸ PAUSE</button>
+      <button class="drv-btn drv-btn-reset drv-hidden" id="drv-btn-reset">↺ RESET</button>
+    </div>
+
+    <!-- Live corridor info (shown once started) -->
+    <div class="drv-card drv-hidden" id="drv-live-info">
+      <div class="drv-card-title">Corridor Status</div>
+
+      <!-- Next junction -->
+      <div class="drv-next-junction" id="drv-next-junction-card">
+        <span class="drv-next-label">NEXT JUNCTION</span>
+        <div class="drv-next-name" id="drv-next-junc-name">—</div>
+        <div class="drv-next-dist" id="drv-next-junc-dist"></div>
+      </div>
+
+      <!-- Signal state -->
+      <div style="margin-top:10px;">
+        <div class="drv-signal-display normal" id="drv-signal-display">
+          <div class="drv-signal-dot"></div>
+          <span id="drv-signal-text">Normal signal operation</span>
+        </div>
+      </div>
+
+      <!-- VMS -->
+      <div style="margin-top:10px;">
+        <div class="drv-vms-board">
+          <div class="drv-vms-text normal" id="drv-vms-text">DRIVE CAUTIOUSLY
+HAVE A GOOD DAY</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live stats (distance, ETA, speed) -->
+    <div class="drv-card drv-hidden" id="drv-live-stats">
+      <div class="drv-card-title">Live Progress</div>
+      <div class="drv-stats-grid">
+        <div class="drv-stat-box">
+          <span class="drv-stat-label">Remaining</span>
+          <span class="drv-stat-value teal" id="drv-live-remaining">—</span>
+        </div>
+        <div class="drv-stat-box">
+          <span class="drv-stat-label">ETA</span>
+          <span class="drv-stat-value green" id="drv-live-eta">—</span>
+        </div>
+        <div class="drv-stat-box">
+          <span class="drv-stat-label">Speed</span>
+          <span class="drv-stat-value amber" id="drv-live-speed">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completion card -->
+    <div class="drv-card drv-hidden" id="drv-completion-card">
+      <div class="drv-completion-card">
+        <h3>✅ EMERGENCY CORRIDOR COMPLETED</h3>
+        <div class="drv-completion-stats">
+          <div class="drv-comp-stat">
+            <strong id="drv-comp-baseline">—</strong>
+            Baseline ETA
+          </div>
+          <div class="drv-comp-stat">
+            <strong id="drv-comp-optimized">—</strong>
+            Optimized ETA
+          </div>
+          <div class="drv-comp-stat">
+            <strong id="drv-comp-saved" style="color:var(--drv-green)">—</strong>
+            Time Saved
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:0.75rem;color:var(--drv-muted);">
+          <span>🚦 <strong id="drv-comp-junctions">0</strong> Junctions Prioritised</span>
+          <span>📶 <strong id="drv-comp-vms">0</strong> VMS Activated</span>
+          <span>🔍 <strong id="drv-comp-anpr">0</strong> ANPR Detections</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══════ MAP ══════ -->
+  <div class="drv-map-wrap">
+    <div id="drv-map"></div>
+
+    <!-- Navigation instruction banner -->
+    <div class="drv-nav-banner drv-hidden" id="drv-nav-banner">
+      <div class="drv-nav-banner-icon">➡</div>
+      <div>
+        <div class="drv-nav-banner-next">NEXT</div>
+        <div class="drv-nav-banner-name" id="drv-nav-banner-name">—</div>
+      </div>
+      <div class="drv-nav-banner-dist" id="drv-nav-banner-dist">—</div>
+    </div>
+
+    <!-- Speedometer -->
+    <div class="drv-speed-overlay">
+      <span class="drv-speed-value" id="drv-speed-val">0</span>
+      <span class="drv-speed-unit">km/h</span>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="drv-progress-bar-wrap">
+      <div class="drv-progress-bar" id="drv-progress-bar"></div>
+    </div>
+  </div>
+
+</div><!-- /.drv-layout -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/emergency_driver.js') }}?v=2"></script>
+</body>
+</html>

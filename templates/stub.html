@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ page_name }} — I²TMS{% endblock %}
+
+{% block content %}
+<div class="stub-page">
+  <div class="stub-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8"  x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+  </div>
+  <h1 class="stub-title">{{ page_name }}</h1>
+  <p class="stub-desc">This screen is under development and will be available in a future sprint.</p>
+  <a href="{{ url_for('dashboard.dashboard_view') }}" class="stub-back" id="stub-back-link">← Back to Overview</a>
+</div>
+
+<style>
+.stub-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:14px;text-align:center;}
+.stub-icon{width:64px;height:64px;background:#F3F4F6;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.stub-icon svg{width:30px;height:30px;stroke:#9CA3AF;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.stub-title{font-size:20px;font-weight:700;color:#1A2942;margin:0;}
+.stub-desc{color:#6B7280;font-size:14px;max-width:320px;line-height:1.55;margin:0;}
+.stub-back{color:#0EA5A0;font-size:13px;font-weight:600;text-decoration:none;}
+.stub-back:hover{text-decoration:underline;}
+</style>
+{% endblock %}

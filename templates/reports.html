@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block page_title %}Reports — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reports.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page header ──────────────────────────────────────────────────────── -->
+<div class="rp-page-header">
+  <div>
+    <h1 class="rp-page-title">Reports</h1>
+    <p class="rp-page-subtitle">Generate and download analytical reports and system logs</p>
+  </div>
+  
+  <div class="report-controls">
+    <div class="control-group">
+      <label for="time-range-select">Time Range</label>
+      <select id="time-range-select" class="custom-select">
+        <option value="today">Today</option>
+        <option value="this_week" selected>This Week</option>
+        <option value="this_month">This Month</option>
+        <option value="custom">Custom Range</option>
+      </select>
+    </div>
+
+    <div class="control-group custom-range-fields" id="custom-range-fields" hidden>
+      <div class="date-field">
+        <label for="range-start">Start</label>
+        <input type="date" id="range-start" class="rp-date-input">
+      </div>
+      <div class="date-field">
+        <label for="range-end">End</label>
+        <input type="date" id="range-end" class="rp-date-input">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Report Type Card Selection ────────────────────────────────────────── -->
+<div class="rp-types-grid">
+
+  <!-- Traffic Performance -->
+  <button type="button" class="rp-card" data-type="traffic_performance" aria-label="Select Traffic Performance Report">
+    <div class="rp-card-icon bg-blue">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" />
+      </svg>
+    </div>
+    <div class="rp-card-body">
+      <h3 class="rp-card-title">Traffic Performance Report</h3>
+      <p class="rp-card-desc">Junction-wise performance summary and traffic volume metrics.</p>
+    </div>
+  </button>
+
+  <!-- Signal Optimization -->
+  <button type="button" class="rp-card" data-type="signal_optimization" aria-label="Select Signal Optimization Report">
+    <div class="rp-card-icon bg-green">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="7" y="2" width="10" height="20" rx="3" />
+        <circle cx="12" cy="7" r="2" fill="currentColor" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" />
+        <circle cx="12" cy="17" r="2" fill="currentColor" />
+      </svg>
+    </div>
+    <div class="rp-card-body">
+      <h3 class="rp-card-title">Signal Optimization Report</h3>
+      <p class="rp-card-desc">Audit of manual overrides, adaptive decisions, and average phase times.</p>
+    </div>
+  </button>
+
+  <!-- Congestion Report -->
+  <button type="button" class="rp-card" data-type="congestion" aria-label="Select Congestion Report">
+    <div class="rp-card-icon bg-amber">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+    </div>
+    <div class="rp-card-body">
+      <h3 class="rp-card-title">Congestion Report</h3>
+      <p class="rp-card-desc">Congestion hotspots, peak-hour bottlenecks, and delay trend metrics.</p>
+    </div>
+  </button>
+
+  <!-- Emergency Response -->
+  <button type="button" class="rp-card" data-type="emergency_response" aria-label="Select Emergency Response Report">
+    <div class="rp-card-icon bg-red">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </div>
+    <div class="rp-card-body">
+      <h3 class="rp-card-title">Emergency Response Report</h3>
+      <p class="rp-card-desc">Green corridor dispatch counts, completion rates, and average preemption delays.</p>
+    </div>
+  </button>
+
+</div>
+
+<!-- ── Generate Button Row ──────────────────────────────────────────────── -->
+<div class="rp-action-row">
+  <div class="rp-error-banner" id="rp-error-banner" hidden></div>
+  <button type="button" class="btn-primary rp-btn-generate" id="rp-btn-generate" disabled>
+    🔗 GENERATE REPORT
+  </button>
+</div>
+
+<!-- ── Generated Preview Area (Hidden by default) ────────────────────────── -->
+<div class="section-panel rp-preview-card" id="rp-preview-card" hidden>
+  
+  <div class="rp-preview-header">
+    <div>
+      <h2 class="rp-preview-title" id="rp-preview-title">Report Summary</h2>
+      <p class="rp-preview-sub">Generated preview of selected metrics and data</p>
+    </div>
+    
+    <!-- Action buttons -->
+    <div class="rp-preview-actions">
+      <a href="#" class="btn-outline rp-btn-download" id="rp-btn-pdf" target="_blank" download>
+        📄 Download PDF
+      </a>
+      <a href="#" class="btn-outline rp-btn-download" id="rp-btn-csv" target="_blank" download>
+        📊 Download CSV
+      </a>
+    </div>
+  </div>
+
+  <div class="rp-preview-content">
+    <!-- Stat grid populated dynamically -->
+    <div class="rp-preview-stats" id="rp-preview-stats"></div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+{% endblock %}

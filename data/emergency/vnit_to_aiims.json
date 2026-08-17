@@ -1,0 +1,141 @@
+{
+  "route_id": "vnit_to_aiims",
+  "source": {
+    "name": "VNIT Nagpur",
+    "lat": 21.123028,
+    "lon": 79.051449
+  },
+  "destination": {
+    "name": "AIIMS Nagpur",
+    "lat": 21.036856,
+    "lon": 79.027517
+  },
+  "baseline_time_minutes": 30,
+  "prototype_optimized_time_minutes": 18,
+
+  "junctions": [
+    {
+      "id": "J01",
+      "name": "Mate Chowk",
+      "lat": 21.121626,
+      "lon": 79.056478,
+      "ambulance_approach": "east",
+      "sequence": 1
+    },
+    {
+      "id": "J02",
+      "name": "Pratap Nagar Square",
+      "lat": 21.113802,
+      "lon": 79.056815,
+      "ambulance_approach": "south",
+      "sequence": 2
+    },
+    {
+      "id": "J03",
+      "name": "Orange City Hospital Square",
+      "lat": 21.112093,
+      "lon": 79.065118,
+      "ambulance_approach": "east",
+      "sequence": 3
+    },
+    {
+      "id": "J04",
+      "name": "Chatrapati Square",
+      "lat": 21.110764,
+      "lon": 79.070343,
+      "ambulance_approach": "east",
+      "sequence": 4
+    },
+    {
+      "id": "J05",
+      "name": "Jaiprakash Nagar Square",
+      "lat": 21.104460,
+      "lon": 79.068396,
+      "ambulance_approach": "south",
+      "sequence": 5
+    },
+    {
+      "id": "J06",
+      "name": "Ujjwal Nagar",
+      "lat": 21.098029,
+      "lon": 79.066840,
+      "ambulance_approach": "south",
+      "sequence": 6
+    },
+    {
+      "id": "J07",
+      "name": "Dr. Hedgewar Square",
+      "lat": 21.087125,
+      "lon": 79.064101,
+      "ambulance_approach": "south",
+      "sequence": 7
+    },
+    {
+      "id": "J08",
+      "name": "AIIMS Gate Junction",
+      "lat": 21.036827,
+      "lon": 79.029687,
+      "ambulance_approach": "south",
+      "sequence": 8
+    }
+  ],
+
+  "vms": [
+    {
+      "id": "VMS01",
+      "name": "VMS — VNIT Corridor",
+      "lat": 21.121472,
+      "lon": 79.053362,
+      "sequence": 1
+    },
+    {
+      "id": "VMS02",
+      "name": "VMS — Khamla Corridor",
+      "lat": 21.113311,
+      "lon": 79.060503,
+      "sequence": 2
+    },
+    {
+      "id": "VMS03",
+      "name": "VMS — Chatrapati Metro Square",
+      "lat": 21.108613,
+      "lon": 79.069597,
+      "sequence": 3
+    },
+    {
+      "id": "VMS04",
+      "name": "VMS — Somalwada",
+      "lat": 21.092418,
+      "lon": 79.065485,
+      "sequence": 4
+    },
+    {
+      "id": "VMS05",
+      "name": "VMS — South Airport",
+      "lat": 21.078643,
+      "lon": 79.060160,
+      "sequence": 5
+    },
+    {
+      "id": "VMS06",
+      "name": "VMS — Narayan Vidyalaya",
+      "lat": 21.062650,
+      "lon": 79.056968,
+      "sequence": 6
+    },
+    {
+      "id": "VMS07",
+      "name": "VMS — Khapri Circle",
+      "lat": 21.046349,
+      "lon": 79.052526,
+      "sequence": 7
+    },
+    {
+      "id": "VMS08",
+      "name": "VMS — IIM Nagpur",
+      "lat": 21.039264,
+      "lon": 79.032421,
+      "sequence": 8
+    }
+  ]
+}

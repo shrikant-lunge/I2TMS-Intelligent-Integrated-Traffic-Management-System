@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — I²TMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      background: #0F172A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: #fff;
+    }
+    .badge {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: #0EA5A0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700;
+    }
+    h1 { font-size: 28px; font-weight: 700; }
+    p  { color: #6B7280; font-size: 15px; }
+    .meta { font-size: 13px; color: #94A3B8; margin-top: 4px; }
+    .logout-btn {
+      margin-top: 8px;
+      padding: 10px 24px;
+      background: #1A2942;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover { background: #24365A; }
+  </style>
+</head>
+<body>
+  <div class="badge">I²</div>
+  <h1>Dashboard</h1>
+  <p>Welcome back, <strong>{{ username }}</strong>!</p>
+  <p class="meta">Role: <strong>{{ role }}</strong> &nbsp;·&nbsp; Full dashboard coming soon.</p>
+  <a href="{{ url_for('auth.logout') }}" class="logout-btn" id="logout-link">Logout</a>
+</body>
+</html>
