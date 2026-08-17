@@ -5,7 +5,7 @@ An intelligent traffic management solution designed to optimize urban traffic fl
 ![Status](https://img.shields.io/badge/status-prototype-orange)
 ![License](https://img.shields.io/badge/license-Educational%20Use-blue)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue?logo=python&logoColor=white)
-![React](https://img.shields.io/badge/frontend-React-61DAFB?logo=react&logoColor=white)
+![JavaScript & CSS](https://img.shields.io/badge/frontend-React-61DAFB?logo=react&logoColor=white)
 ![YOLO](https://img.shields.io/badge/vision-YOLO-black)
 ![OSRM](https://img.shields.io/badge/routing-OSRM-brightgreen)
 
