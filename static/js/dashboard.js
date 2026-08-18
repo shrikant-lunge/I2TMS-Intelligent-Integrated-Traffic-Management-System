@@ -2,10 +2,10 @@
  * I²TMS — dashboard.js
  *
  * Polls /api/dashboard_summary every 10 s and renders:
- *   · Stat cards  (total/active junctions, congestion, corridors)
- *   · Live junction cards (camera thumb, name, congestion badge)
- *   · Traffic trend line chart  (Chart.js 4.x)
- *   · Recent alerts list
+ *   · Stat cards  (total/active junctions, congestion, active corridors)
+ *   · Live junction cards
+ *   · Traffic trend line chart  (Chart.js 4.x)  — DB-backed, no random data
+ *   · Recent Emergency Corridors list
  */
 
 (function () {
@@ -26,34 +26,34 @@
         labels: [],
         datasets: [
           {
-            label:           'High',
-            data:            [],
-            borderColor:     '#EF4444',
-            borderWidth:     2,
-            pointRadius:     0,
+            label:            'High',
+            data:             [],
+            borderColor:      '#EF4444',
+            borderWidth:      2,
+            pointRadius:      0,
             pointHoverRadius: 4,
-            fill:            false,
-            tension:         0.4,
+            fill:             false,
+            tension:          0.4,
           },
           {
-            label:           'Medium',
-            data:            [],
-            borderColor:     '#F59E0B',
-            borderWidth:     2,
-            pointRadius:     0,
+            label:            'Medium',
+            data:             [],
+            borderColor:      '#F59E0B',
+            borderWidth:      2,
+            pointRadius:      0,
             pointHoverRadius: 4,
-            fill:            false,
-            tension:         0.4,
+            fill:             false,
+            tension:          0.4,
           },
           {
-            label:           'Low',
-            data:            [],
-            borderColor:     '#10B981',
-            borderWidth:     2,
-            pointRadius:     0,
+            label:            'Low',
+            data:             [],
+            borderColor:      '#10B981',
+            borderWidth:      2,
+            pointRadius:      0,
             pointHoverRadius: 4,
-            fill:            false,
-            tension:         0.4,
+            fill:             false,
+            tension:          0.4,
           },
         ],
       },
@@ -85,13 +85,12 @@
           },
           y: {
             min:    0,
-            max:    100,
             border: { display: false },
             grid:   { color: '#F3F4F6' },
             ticks: {
-              color:     '#9CA3AF',
-              font:      { size: 11, family: 'Inter, sans-serif' },
-              stepSize:  25,
+              color:    '#9CA3AF',
+              font:     { size: 11, family: 'Inter, sans-serif' },
+              stepSize: 10,
             },
           },
         },
@@ -111,9 +110,9 @@
       })
       .then(function (data) {
         renderStatCards(data);
-        renderJunctions(data.live_junctions  || []);
-        updateChart(data.traffic_trend       || {});
-        renderAlerts(data.recent_alerts      || []);
+        renderJunctions(data.live_junctions    || []);
+        updateChart(data.traffic_trend         || {});
+        renderCorridors(data.recent_corridors  || []);
       })
       .catch(function (err) {
         console.warn('[I²TMS dashboard] fetch error:', err);
@@ -139,8 +138,17 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────────
-     Live junction cards
+     Live junction cards — part-N-result.mp4 videos (cycling by index)
   ────────────────────────────────────────────────────────────────────── */
+
+  // Map junction index (0-3) → static video filename in /static/videos/
+  var JUNCTION_VIDEOS = [
+    '/static/videos/part-1-result.mp4',
+    '/static/videos/part-2-result.mp4',
+    '/static/videos/part-3-result.mp4',
+    '/static/videos/part-4-result.mp4',
+  ];
+
   function renderJunctions(junctions) {
     var grid = document.getElementById('junction-grid');
     if (!grid) return;
@@ -152,15 +160,18 @@
       return;
     }
 
-    grid.innerHTML = junctions.map(function (j) {
-      var status  = (j.status || 'low').toLowerCase();
-      var label   = cap(status);
-      var jid     = 'junction-' + esc(j.name.replace(/\s+/g, '').toLowerCase());
-      /* Use real feed URL when available; fall back to static placeholder.
-         TODO: swap /static/img/camera-placeholder.jpg for the live MJPEG/
-         snapshot URL once teammates' detection pipeline exposes it. */
-      var thumbSrc = j.thumbnail_url || '/static/img/camera-placeholder.jpg';
-      var camHtml  = '<img src="' + esc(thumbSrc) + '" alt="' + esc(j.name) + ' camera feed" loading="lazy">';
+    grid.innerHTML = junctions.map(function (j, idx) {
+      var status   = (j.status || 'low').toLowerCase();
+      var label    = cap(status);
+      var jid      = 'junction-' + esc(j.name.replace(/\s+/g, '').toLowerCase());
+      // Use part video cycling by index; fall back to thumbnail image if out of range
+      var videoSrc = JUNCTION_VIDEOS[idx % JUNCTION_VIDEOS.length];
+      var camHtml  =
+        '<video src="' + esc(videoSrc) + '"' +
+        ' autoplay muted loop playsinline' +
+        ' aria-label="' + esc(j.name) + ' live camera feed"' +
+        ' style="width:100%;height:100%;object-fit:cover;display:block;">' +
+        '</video>';
 
       return (
         '<a href="' + esc(j.link || '#') + '" class="junction-card" id="' + jid + '">' +
@@ -184,45 +195,85 @@
      Traffic trend chart
   ────────────────────────────────────────────────────────────────────── */
   function updateChart(trend) {
-    if (!trendChart || !trend.labels) return;
+    if (!trendChart) return;
+
+    // No data state — show message overlay instead of empty chart
+    var wrap = document.querySelector('.chart-wrap');
+    var emptyOverlay = document.getElementById('trend-empty-state');
+
+    if (!trend.labels || trend.labels.length === 0) {
+      if (!emptyOverlay && wrap) {
+        var overlay = document.createElement('div');
+        overlay.id = 'trend-empty-state';
+        overlay.style.cssText =
+          'position:absolute;inset:0;display:flex;align-items:center;' +
+          'justify-content:center;background:rgba(255,255,255,0.92);' +
+          'border-radius:8px;z-index:2;padding:16px;text-align:center;';
+        overlay.innerHTML =
+          '<p style="color:#6B7280;font-size:13px;line-height:1.5;max-width:280px;">' +
+          (trend.empty_message ||
+            'No historical traffic data available yet. ' +
+            'Data will appear once the adaptive-signal pipeline processes its first feed.') +
+          '</p>';
+        wrap.style.position = 'relative';
+        wrap.appendChild(overlay);
+      }
+      return;
+    }
+
+    // Remove empty overlay if present
+    if (emptyOverlay) emptyOverlay.remove();
+
     trendChart.data.labels           = trend.labels;
     trendChart.data.datasets[0].data = trend.high   || [];
     trendChart.data.datasets[1].data = trend.medium || [];
     trendChart.data.datasets[2].data = trend.low    || [];
-    trendChart.update('none');   // suppress animation on poll updates
+    trendChart.update('none');
   }
 
   /* ──────────────────────────────────────────────────────────────────────
-     Recent alerts list
+     Recent Emergency Corridors list
   ────────────────────────────────────────────────────────────────────── */
-  var WARN_ICON =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
-      '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' +
-      '<line x1="12" y1="9"  x2="12" y2="13"/>' +
-      '<line x1="12" y1="17" x2="12.01" y2="17"/>' +
-    '</svg>';
+  var STATUS_ICON = {
+    ACTIVE:    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    COMPLETED: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>',
+    CLOSED:    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  };
 
-  function renderAlerts(alerts) {
-    var list = document.getElementById('alerts-list');
+  function renderCorridors(corridors) {
+    var list = document.getElementById('corridors-list');
     if (!list) return;
 
-    if (!alerts.length) {
+    if (!corridors.length) {
       list.innerHTML =
-        '<p style="color:#6B7280;font-size:13px;text-align:center;padding:28px 0">No active alerts</p>';
+        '<p style="color:#6B7280;font-size:13px;text-align:center;padding:28px 0">' +
+        'No emergency corridors yet</p>';
       return;
     }
 
-    list.innerHTML = alerts.map(function (a) {
-      var sev = (a.severity || 'low').toLowerCase();
+    list.innerHTML = corridors.map(function (c) {
+      var status    = (c.status || 'CLOSED').toUpperCase();
+      var statusCls = status.toLowerCase();
+      var icon      = STATUS_ICON[status] || STATUS_ICON['CLOSED'];
+      var dest      = c.destination || '—';
+      var src       = c.source      || '—';
+      var saved     = c.time_saved  != null ? c.time_saved + ' min saved' : '';
+
       return (
-        '<div class="alert-row">' +
-          '<div class="alert-icon ' + sev + '" aria-hidden="true">' + WARN_ICON + '</div>' +
+        '<a href="' + esc(c.detail_url || '#') + '" class="alert-row corridor-row" style="text-decoration:none;">' +
+          '<div class="alert-icon corridor-status-' + statusCls + '" aria-hidden="true">' + icon + '</div>' +
           '<div class="alert-body">' +
-            '<div class="alert-type">'     + esc(a.type     || '—') + '</div>' +
-            '<div class="alert-location">' + esc(a.junction || '—') + '</div>' +
+            '<div class="alert-type">' + esc(dest) + '</div>' +
+            '<div class="alert-location" style="font-size:11px;color:#6B7280">' +
+              esc(src) +
+              (saved ? ' &bull; <span style="color:#10B981">' + esc(saved) + '</span>' : '') +
+            '</div>' +
           '</div>' +
-          '<div class="alert-time">' + esc(a.time || '') + '</div>' +
-        '</div>'
+          '<div class="alert-time">' +
+            '<span class="corridor-badge corridor-badge-' + statusCls + '">' + esc(status) + '</span>' +
+            '<div style="font-size:11px;color:#9CA3AF;margin-top:4px">' + esc(c.time || '') + '</div>' +
+          '</div>' +
+        '</a>'
       );
     }).join('');
   }

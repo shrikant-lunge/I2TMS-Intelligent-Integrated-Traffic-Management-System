@@ -14,7 +14,16 @@ def create_app(config_class=Config):
     db.init_app(app)
 
     with app.app_context():
-        from app.models import Junction  # imports all models into metadata before create_all
+        # Import ALL models so SQLAlchemy registers their metadata before create_all
+        from app.models import (  # noqa: F401
+            Junction, User, Alert, SignalPlanHistory, EmergencyRequest,
+            VMSBoard, GeneratedReport, SystemSettings, Violation, Challan,
+            RouteCheckpoint, AdaptiveSignalState,
+            # New analytics models
+            TrafficStateSnapshot, SignalDecision, DecisionLog, TrafficTrend,
+            EmergencyCorridorRecord, EmergencyCorridorEvent, ANPRDetection,
+            EmergencyMetrics,
+        )
 
         db.create_all()
         from datetime import datetime
@@ -38,5 +47,10 @@ def create_app(config_class=Config):
     # Register blueprints
     from app.routes import init_app as init_routes
     init_routes(app)
-    
+
+    # Give the corridor service a reference to the app so its background thread
+    # can write to the database via app context.
+    from app.services.emergency_corridor_service import corridor_service
+    corridor_service.init_app(app)
+
     return app

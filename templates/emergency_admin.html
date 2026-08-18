@@ -14,7 +14,7 @@
   <!-- ── Page Header ── -->
   <div class="ec-page-header">
     <div>
-      <h1>🚑 Emergency Green Corridor</h1>
+      <h1><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><line x1="5.5" y1="16" x2="5.5" y2="20"/><line x1="9.5" y1="16" x2="9.5" y2="20"/><path d="M7 6v4M5 8h4"/></svg> Emergency Green Corridor</h1>
       <p>NMC Control Room — Real-time corridor monitoring &amp; signal coordination (Prototype / Simulation)</p>
     </div>
     <div class="ec-header-right">
@@ -24,14 +24,14 @@
       </span>
       <a href="{{ url_for('emergency_corridor.driver_screen') }}" target="_blank"
          class="ec-btn ec-btn-ghost" style="text-decoration:none;">
-        🚑 Open Driver Screen
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><line x1="5.5" y1="16" x2="5.5" y2="20"/><line x1="9.5" y1="16" x2="9.5" y2="20"/><path d="M7 6v4M5 8h4"/></svg> Open Driver Screen
       </a>
     </div>
   </div>
 
   <!-- ── Prototype notice ── -->
   <div class="ec-prototype-notice">
-    ⚠ This is a software simulation prototype. Ambulance movement, traffic signals, and VMS boards
+    <span style="vertical-align:middle;margin-right:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> This is a software simulation prototype. Ambulance movement, traffic signals, and VMS boards
     are virtual. Real-world deployment requires live GPS, signal controller integration, and physical VMS connectivity.
   </div>
 
@@ -43,13 +43,13 @@
       <div>
         <div class="ec-card">
           <div class="ec-card-header">
-            <h2>🗺 Route Setup</h2>
+            <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Route Setup</h2>
           </div>
           <div class="ec-card-body">
             <div class="ec-form-group">
               <label>Source (Fixed)</label>
               <div style="padding:9px 12px;background:#F9FAFB;border:1px solid var(--ec-border);border-radius:7px;font-size:0.88rem;color:var(--ec-muted);">
-                📍 VNIT Nagpur&nbsp; <small>(21.1230, 79.0514)</small>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> VNIT Nagpur&nbsp; <small>(21.1230, 79.0514)</small>
               </div>
             </div>
             <div class="ec-form-group">
@@ -79,7 +79,7 @@
       <!-- Right: Route map preview -->
       <div class="ec-card">
         <div class="ec-card-header">
-          <h2>🗺 Route Map</h2>
+          <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Route Map</h2>
           <span id="ec-routing-mode-badge" class="ec-pill ec-pill-idle" style="display:none;"></span>
         </div>
         <div id="ec-admin-map"></div>
@@ -98,13 +98,13 @@
         <div class="ec-card">
           <div class="ec-card-header">
             <h2>
-              🗺 Live Corridor Map
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Live Corridor Map
               <span class="ec-pill ec-pill-active" id="ec-map-pill">
                 <span class="dot"></span> ACTIVE
               </span>
             </h2>
             <div style="display:flex;gap:8px;">
-              <button class="ec-btn ec-btn-amber" id="ec-btn-pause">⏸ Pause</button>
+              <button class="ec-btn ec-btn-amber" id="ec-btn-pause"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause</button>
               <button class="ec-btn ec-btn-ghost" id="ec-btn-reset">↺ Reset</button>
             </div>
           </div>
@@ -126,7 +126,7 @@
         <!-- ANPR Panel -->
         <div class="ec-card" style="margin-top:16px;" id="ec-anpr-panel">
           <div class="ec-card-header">
-            <h2>📷 ANPR Camera Feed</h2>
+            <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ANPR Camera Feed</h2>
             <span class="ec-pill ec-pill-idle" id="ec-anpr-pill">Waiting…</span>
           </div>
           <div class="ec-card-body">
@@ -139,7 +139,7 @@
             <!-- Video state -->
             <div class="ec-anpr-video-wrap ec-hidden" id="ec-anpr-video-wrap">
               <video id="ec-anpr-video"
-                     src="{{ url_for('static', filename='videos/anpr_demo.mp4') }}"
+                     src="{{ url_for('static', filename='videos/anpr_output.mp4') }}"
                      playsinline muted
                      style="width:100%;border-radius:8px;display:block;"></video>
               <div class="ec-anpr-overlay">
@@ -164,7 +164,7 @@
 
         <!-- Ambulance status -->
         <div class="ec-card">
-          <div class="ec-card-header"><h2>🚑 Ambulance Status</h2></div>
+          <div class="ec-card-header"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><line x1="5.5" y1="16" x2="5.5" y2="20"/><line x1="9.5" y1="16" x2="9.5" y2="20"/><path d="M7 6v4M5 8h4"/></svg> Ambulance Status</h2></div>
           <div class="ec-card-body">
             <div class="ec-stats-grid">
               <div class="ec-stat-tile">
@@ -189,7 +189,7 @@
 
         <!-- Current junction + signal -->
         <div class="ec-card">
-          <div class="ec-card-header"><h2>🚦 Signal Status</h2></div>
+          <div class="ec-card-header"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="2" fill="currentColor" stroke="none"/></svg> Signal Status</h2></div>
           <div class="ec-card-body">
             <div class="ec-signal-indicator normal" id="ec-signal-indicator">
               <div class="ec-signal-dot"></div>
@@ -207,7 +207,7 @@
 
         <!-- VMS status -->
         <div class="ec-card">
-          <div class="ec-card-header"><h2>📶 VMS Status</h2></div>
+          <div class="ec-card-header"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><line x1="1" y1="6" x2="1" y2="18"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="11" y1="6" x2="11" y2="18"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="21" y1="6" x2="21" y2="18"/></svg> VMS Status</h2></div>
           <div class="ec-card-body">
             <div class="ec-vms-board">
               <span class="ec-vms-board-label" id="ec-vms-label">Active Route VMS</span>
@@ -219,7 +219,7 @@ HAVE A GOOD DAY</div>
 
         <!-- Junction list -->
         <div class="ec-card">
-          <div class="ec-card-header"><h2>📍 Route Junctions</h2></div>
+          <div class="ec-card-header"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Route Junctions</h2></div>
           <div class="ec-card-body">
             <div class="ec-junction-list" id="ec-junction-list">
               <div style="color:var(--ec-muted);font-size:0.85rem;">Loading…</div>
@@ -229,10 +229,10 @@ HAVE A GOOD DAY</div>
 
         <!-- ETA comparison (visible after completion) -->
         <div class="ec-card ec-hidden" id="ec-eta-card">
-          <div class="ec-card-header"><h2>⏱ ETA Analysis</h2></div>
+          <div class="ec-card-header"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ETA Analysis</h2></div>
           <div class="ec-card-body">
             <div class="ec-completion-banner ec-hidden" id="ec-completion-banner">
-              <h3>✅ Emergency Corridor Completed</h3>
+              <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> Emergency Corridor Completed</h3>
               <p>All junctions restored to normal adaptive signal operation.</p>
             </div>
             <div class="ec-eta-compare">
@@ -250,12 +250,12 @@ HAVE A GOOD DAY</div>
               </div>
             </div>
             <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;font-size:0.78rem;color:var(--ec-muted);">
-              <span>🚦 <strong id="ec-stat-junctions">0</strong> Junctions prioritised</span>
-              <span>📶 <strong id="ec-stat-vms">0</strong> VMS activated</span>
-              <span>🔍 <strong id="ec-stat-anpr">0</strong> ANPR detections</span>
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="2" fill="currentColor" stroke="none"/></svg> <strong id="ec-stat-junctions">0</strong> Junctions prioritised</span>
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><line x1="1" y1="6" x2="1" y2="18"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="11" y1="6" x2="11" y2="18"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="21" y1="6" x2="21" y2="18"/></svg> <strong id="ec-stat-vms">0</strong> VMS activated</span>
+              <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <strong id="ec-stat-anpr">0</strong> ANPR detections</span>
             </div>
             <p style="font-size:0.72rem;color:var(--ec-muted);margin-top:8px;border-top:1px solid var(--ec-border);padding-top:8px;">
-              ⚠ ETA values are simulation estimates. Real-world performance depends on live signal controller integration, traffic conditions, and physical infrastructure.
+              <span style="vertical-align:middle;margin-right:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> ETA values are simulation estimates. Real-world performance depends on live signal controller integration, traffic conditions, and physical infrastructure.
             </p>
           </div>
         </div>

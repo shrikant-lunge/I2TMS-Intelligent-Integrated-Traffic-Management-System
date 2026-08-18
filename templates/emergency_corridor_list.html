@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block page_title %}Emergency Corridors — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emergency_corridor.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emergency_corridor_list.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Emergency Corridors</h1>
+    <p class="page-subtitle">NMC Control Room — Historical emergency corridor records</p>
+  </div>
+  <a href="{{ url_for('emergency_corridor.admin_corridor_screen') }}" class="ec-btn ec-btn-primary" style="text-decoration:none;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Live Monitor
+  </a>
+</div>
+
+<!-- ── Filter tabs ──────────────────────────────────────────────── -->
+<div class="ecl-filter-row">
+  <div class="ecl-tabs" id="ecl-tabs">
+    <button class="ecl-tab active" data-status="all">All</button>
+    <button class="ecl-tab" data-status="ACTIVE">
+      <span class="ecl-tab-dot active"></span> Active
+    </button>
+    <button class="ecl-tab" data-status="COMPLETED">
+      <span class="ecl-tab-dot completed"></span> Completed
+    </button>
+    <button class="ecl-tab" data-status="CLOSED">
+      <span class="ecl-tab-dot closed"></span> Closed
+    </button>
+  </div>
+  <div class="ecl-sort-wrap">
+    <label for="ecl-sort" class="ecl-sort-label">Sort:</label>
+    <select id="ecl-sort" class="ec-select" style="width:auto;padding:6px 28px 6px 10px;font-size:0.82rem;">
+      <option value="newest">Newest first</option>
+      <option value="oldest">Oldest first</option>
+      <option value="destination">Destination A→Z</option>
+      <option value="status">Status</option>
+      <option value="duration">Duration saved</option>
+    </select>
+  </div>
+</div>
+
+<!-- ── Corridors table ──────────────────────────────────────────── -->
+<div class="section-panel ecl-table-card">
+  <div class="table-wrap" style="overflow-x:auto;">
+    <table class="ecl-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Route</th>
+          <th>Status</th>
+          <th>Started</th>
+          <th>Distance</th>
+          <th>Baseline ETA</th>
+          <th>Optimized ETA</th>
+          <th>Time Saved</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="ecl-tbody">
+        <tr><td colspan="9">
+          <div class="skeleton" style="height:14px;border-radius:4px;margin:6px 0;"></div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="dl-pagination-footer" id="ecl-pagination" style="display:none;">
+    <div class="dl-pagination-info" id="ecl-pag-info">
+      Showing <span id="ecl-pag-start">0</span>–<span id="ecl-pag-end">0</span>
+      of <span id="ecl-pag-total">0</span>
+    </div>
+    <div class="dl-pagination-controls" id="ecl-pag-controls"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function(){
+  'use strict';
+
+  var currentStatus = 'all';
+  var currentSort   = 'newest';
+  var currentPage   = 1;
+  var perPage       = 10;
+
+  // Tab listeners
+  document.querySelectorAll('.ecl-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.ecl-tab').forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      currentStatus = this.dataset.status;
+      currentPage = 1;
+      fetchAndRender();
+    });
+  });
+
+  // Sort listener
+  var sortEl = document.getElementById('ecl-sort');
+  if(sortEl) sortEl.addEventListener('change', function(){
+    currentSort = this.value;
+    currentPage = 1;
+    fetchAndRender();
+  });
+
+  function fetchAndRender(){
+    var q = '?status=' + encodeURIComponent(currentStatus) +
+            '&sort=' + encodeURIComponent(currentSort) +
+            '&page=' + currentPage + '&per_page=' + perPage;
+    fetch('/api/emergency-corridors' + q, { credentials: 'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){ renderTable(data.rows||[]); renderPagination(data.pagination||{}); })
+      .catch(function(e){ console.warn('[ecl]', e); });
+  }
+
+  var STATUS_BADGE = {
+    ACTIVE:    '<span class="corridor-badge corridor-badge-active">ACTIVE</span>',
+    COMPLETED: '<span class="corridor-badge corridor-badge-completed">COMPLETED</span>',
+    CLOSED:    '<span class="corridor-badge corridor-badge-closed">CLOSED</span>',
+  };
+
+  function renderTable(rows){
+    var tbody = document.getElementById('ecl-tbody');
+    if(!tbody) return;
+    if(!rows.length){
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#9CA3AF;padding:32px 0">No corridors found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function(r){
+      var badge = STATUS_BADGE[r.status] || STATUS_BADGE['CLOSED'];
+      var saved = r.time_saved != null ? '<span style="color:#10B981;font-weight:700">−' + esc(r.time_saved) + ' min</span>' : '—';
+      return (
+        '<tr>' +
+          '<td><code style="font-size:11px;color:#6B7280">' + esc(r.corridor_id) + '</code></td>' +
+          '<td>' +
+            '<div style="font-weight:600;color:#111827">' + esc(r.destination) + '</div>' +
+            '<div style="font-size:11px;color:#9CA3AF">from ' + esc(r.source) + '</div>' +
+          '</td>' +
+          '<td>' + badge + '</td>' +
+          '<td style="font-size:12px;color:#6B7280">' + esc(r.started_at || '—') + '</td>' +
+          '<td>' + (r.distance_km != null ? esc(r.distance_km) + ' km' : '—') + '</td>' +
+          '<td>' + (r.baseline_eta != null ? esc(r.baseline_eta) + ' min' : '—') + '</td>' +
+          '<td style="color:#0EA5A0;font-weight:600">' + (r.optimized_eta != null ? esc(r.optimized_eta) + ' min' : '—') + '</td>' +
+          '<td>' + saved + '</td>' +
+          '<td><a href="/emergency-corridor/' + esc(r.corridor_id) + '" class="ecl-detail-btn">View →</a></td>' +
+        '</tr>'
+      );
+    }).join('');
+  }
+
+  function renderPagination(pag){
+    var footer = document.getElementById('ecl-pagination');
+    var controls = document.getElementById('ecl-pag-controls');
+    if(!footer||!controls) return;
+    if(!pag.total_rows){ footer.style.display='none'; return; }
+    footer.style.display='flex';
+    var s=(pag.current_page-1)*pag.per_page+1;
+    var e=Math.min(s+pag.per_page-1,pag.total_rows);
+    document.getElementById('ecl-pag-start').textContent=s;
+    document.getElementById('ecl-pag-end').textContent=e;
+    document.getElementById('ecl-pag-total').textContent=pag.total_rows;
+    var html=[];
+    html.push('<button class="dl-page-btn'+(pag.current_page<=1?' disabled':'')+'" data-page="'+(pag.current_page-1)+'"'+(pag.current_page<=1?' disabled':'')+'>‹</button>');
+    for(var i=1;i<=pag.total_pages;i++){
+      html.push('<button class="dl-page-btn'+(i===pag.current_page?' active':'')+'" data-page="'+i+'">'+i+'</button>');
+    }
+    html.push('<button class="dl-page-btn'+(pag.current_page>=pag.total_pages?' disabled':'')+'" data-page="'+(pag.current_page+1)+'"'+(pag.current_page>=pag.total_pages?' disabled':'')+'>›</button>');
+    controls.innerHTML=html.join('');
+    controls.querySelectorAll('.dl-page-btn').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var p=parseInt(this.dataset.page,10);
+        if(p&&p!==currentPage){ currentPage=p; fetchAndRender(); }
+      });
+    });
+  }
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  fetchAndRender();
+  setInterval(fetchAndRender, 15000); // refresh every 15s for active corridors
+})();
+</script>
+{% endblock %}

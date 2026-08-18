@@ -148,84 +148,143 @@ def profile():
 @login_required
 def api_dashboard_summary():
     """
-    Dashboard summary JSON.
-    Items marked  # REAL  pull live data from the DB.
-    Items marked  # MOCK  use generated/hardcoded values — replace with
-    real pipeline data from your teammates' detection module.
+    Dashboard summary — all values are database-driven.
+    No mock/random data.
     """
-    now = datetime.utcnow()
+    from app.models.emergency_corridor_record import EmergencyCorridorRecord
+    from app.models.adaptive_signal_state import AdaptiveSignalState
+    from app.models.traffic_trend import TrafficTrend
 
-    # ── REAL: live junction cards (first 4 A-D junctions) ───────────────────
+    now = datetime.utcnow()
+    window_start = now - timedelta(minutes=30)  # "active" = updated within 30 min
+
+    # ── REAL: stat cards ─────────────────────────────────────────────────────
+
+    # Total junctions in the database
+    total_junctions = Junction.query.count()
+
+    # Active junctions = those with a recent AdaptiveSignalState update
+    active_junction_names = (
+        db.session.query(AdaptiveSignalState.junction_name)
+        .filter(AdaptiveSignalState.updated_at >= window_start)
+        .distinct()
+        .all()
+    )
+    active_junctions = len(active_junction_names)
+    # Floor: count junctions whose DB status != "low" as a fallback
+    if active_junctions == 0:
+        active_junctions = Junction.query.filter(Junction.status != "low").count()
+
+    # Average congestion from the most recent AdaptiveSignalState rows
+    recent_states = (
+        AdaptiveSignalState.query
+        .filter(AdaptiveSignalState.updated_at >= window_start)
+        .all()
+    )
+    if recent_states:
+        level_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
+        for s in recent_states:
+            lvl = (s.congestion_level or "LOW").upper()
+            if lvl in level_counts:
+                level_counts[lvl] += 1
+        dominant = max(level_counts, key=level_counts.get)
+        avg_congestion = dominant.capitalize()
+    else:
+        # Fall back to junction status distribution
+        high_count = Junction.query.filter_by(status="high").count()
+        mod_count  = Junction.query.filter_by(status="moderate").count()
+        if high_count >= mod_count:
+            avg_congestion = "High"
+        elif mod_count > 0:
+            avg_congestion = "Moderate"
+        else:
+            avg_congestion = "Low"
+
+    # Active corridors from the new EmergencyCorridorRecord table
+    active_corridors = EmergencyCorridorRecord.query.filter_by(status="ACTIVE").count()
+
+    # ── REAL: live junction cards ────────────────────────────────────────────
     display_junctions = (
         Junction.query
-        .filter(Junction.name.like("Junction _"))
         .order_by(Junction.name)
         .limit(4)
         .all()
     )
-    live_junctions = [
-        {
+    live_junctions = []
+    for j in display_junctions:
+        # Try to find the most recent signal state for this junction
+        state = (
+            AdaptiveSignalState.query
+            .filter_by(junction_name=j.name)
+            .order_by(AdaptiveSignalState.updated_at.desc())
+            .first()
+        )
+        badge_status = state.traffic_level.lower() if state else j.status
+        live_junctions.append({
             "name":          j.name,
-            "status":        j.status,
+            "status":        badge_status,
             "thumbnail_url": j.camera_thumbnail_url or "",
             "link":          f"/adaptive-signals?junction={j.name.split()[-1]}",
-        }
-        for j in display_junctions
-    ]
+        })
 
-    # ── REAL: recent active alerts ───────────────────────────────────────────
-    alert_rows = (
-        Alert.query
-        .filter_by(status="active")
-        .order_by(Alert.created_at.desc())
+    # ── REAL: traffic trend from TrafficTrend table ───────────────────────────
+    trend_start = now - timedelta(hours=1)
+    trend_rows = (
+        TrafficTrend.query
+        .filter(TrafficTrend.time_bucket >= trend_start)
+        .order_by(TrafficTrend.time_bucket.asc())
+        .all()
+    )
+
+    if trend_rows:
+        labels, high_vals, med_vals, low_vals = [], [], [], []
+        for row in trend_rows:
+            labels.append(row.time_bucket.strftime("%H:%M"))
+            level = (row.congestion_level or "LOW").upper()
+            high_vals.append(row.vehicle_count if level == "HIGH"   else 0)
+            med_vals.append( row.vehicle_count if level == "MEDIUM" else 0)
+            low_vals.append( row.vehicle_count if level == "LOW"    else 0)
+        trend_data = {"labels": labels, "high": high_vals, "medium": med_vals, "low": low_vals}
+    else:
+        # No historical data yet — return empty state clearly labelled
+        trend_data = {
+            "labels": [],
+            "high":   [],
+            "medium": [],
+            "low":    [],
+            "empty_message": "No historical traffic data available yet. Data will appear here once the adaptive-signal pipeline processes its first feed.",
+        }
+
+    # ── REAL: recent emergency corridors (replaces recent alerts) ─────────────
+    recent_corridor_rows = (
+        EmergencyCorridorRecord.query
+        .order_by(EmergencyCorridorRecord.created_at.desc())
         .limit(5)
         .all()
     )
-    recent_alerts = [
-        {
-            "type":     a.alert_type,
-            "junction": a.junction.name if a.junction else "Unknown",
-            "time":     a.created_at.strftime("%I:%M %p"),
-            "severity": a.severity,
-        }
-        for a in alert_rows
-    ]
-
-    # ── MOCK: stat card totals ───────────────────────────────────────────────
-    # TODO: Replace with real aggregated queries once junction sensor table is live
-    total_junctions  = 128
-    active_junctions = 96
-    avg_congestion   = "Moderate"
-    active_corridors = 2
-
-    # ── MOCK: traffic trend — rolling 1-hour window, 5-min intervals ─────────
-    # TODO: Replace with time-series query from detection pipeline (e.g. SELECT
-    #       COUNT(*) FROM detections WHERE congestion_level='high' AND ts >= NOW()-INTERVAL 1 HOUR
-    #       GROUP BY FLOOR(UNIX_TIMESTAMP(ts)/300))
-    labels, high_vals, med_vals, low_vals = [], [], [], []
-    for i in range(13):                      # 12 × 5 min = 60-min window
-        minutes_back = 60 - i * 5
-        t_hour   = (now.hour - minutes_back // 60) % 24
-        t_minute = (now.minute - minutes_back % 60) % 60
-        labels.append(f"{t_hour:02d}:{t_minute:02d}")
-        phase = i / 12 * 2 * math.pi
-        high_vals.append(max(0, int(28 + 18 * math.sin(phase) + random.randint(-4, 4))))
-        med_vals.append( max(0, int(50 + 14 * math.cos(phase) + random.randint(-4, 4))))
-        low_vals.append( max(0, int(68 - 10 * math.sin(phase) + random.randint(-4, 4))))
+    recent_corridors = []
+    for c in recent_corridor_rows:
+        ts = c.started_at or c.created_at
+        recent_corridors.append({
+            "corridor_id":      c.corridor_id,
+            "source":           c.source_name,
+            "destination":      c.destination_name,
+            "status":           c.status,
+            "time":             ts.strftime("%I:%M %p") if ts else "—",
+            "distance_km":      c.distance_km,
+            "optimized_eta":    c.optimized_eta_minutes,
+            "time_saved":       c.time_saved_minutes,
+            "detail_url":       f"/emergency-corridor/{c.corridor_id}",
+        })
 
     return jsonify({
-        "total_junctions":  total_junctions,
-        "active_junctions": active_junctions,
-        "avg_congestion":   avg_congestion,
-        "active_corridors": active_corridors,
-        "live_junctions":   live_junctions,
-        "traffic_trend": {
-            "labels": labels,
-            "high":   high_vals,
-            "medium": med_vals,
-            "low":    low_vals,
-        },
-        "recent_alerts": recent_alerts,
+        "total_junctions":    total_junctions,
+        "active_junctions":   active_junctions,
+        "avg_congestion":     avg_congestion,
+        "active_corridors":   active_corridors,
+        "live_junctions":     live_junctions,
+        "traffic_trend":      trend_data,
+        "recent_corridors":   recent_corridors,
     })
 
 
@@ -545,75 +604,197 @@ def api_export_analytics():
     )
 
 
+# ---------------------------------------------------------------------------
+# API Routes — Seed helpers (dev / first-run)
+# ---------------------------------------------------------------------------
+
+@legacy_bp.route("/api/seed_traffic_trend", methods=["POST"])
+@login_required
+def api_seed_traffic_trend():
+    """
+    One-shot seed endpoint: insert 12 TrafficTrend rows covering the last
+    60 minutes in 5-minute buckets so the dashboard chart has data to render.
+    Also seeds 4 DecisionLog rows if the table is empty.
+    Safe to call multiple times — skips buckets that already exist.
+    """
+    from app.models.traffic_trend import TrafficTrend
+    from app.models.decision_log import DecisionLog
+
+    now = datetime.utcnow()
+
+    # Find the "Rahate Colony Square" junction (created at app startup)
+    j_obj = Junction.query.filter_by(name="Rahate Colony Square").first()
+    j_id   = j_obj.id if j_obj else None
+    j_name = "Rahate Colony Square"
+
+    # Fallback: any junction
+    if j_obj is None:
+        j_obj = Junction.query.first()
+        if j_obj:
+            j_id   = j_obj.id
+            j_name = j_obj.name
+
+    # --- TrafficTrend seed ---
+    # 12 buckets x 5 min = 60-min window
+    bucket_specs = [
+        # (minutes_back, vehicle_count, pcu,  congestion_level, avg_speed, traffic_level)
+        (60, 45, 28.5, "HIGH",   12.3, "HIGH"),
+        (55, 38, 22.1, "MEDIUM", 16.8, "MEDIUM"),
+        (50, 52, 31.0, "HIGH",   10.5, "HIGH"),
+        (45, 29, 17.4, "MEDIUM", 21.2, "MEDIUM"),
+        (40, 18, 10.8, "LOW",    28.7, "LOW"),
+        (35, 41, 24.6, "HIGH",   14.1, "HIGH"),
+        (30, 35, 20.9, "MEDIUM", 18.4, "MEDIUM"),
+        (25, 22, 13.2, "LOW",    25.6, "LOW"),
+        (20, 48, 28.8, "HIGH",   11.9, "HIGH"),
+        (15, 31, 18.6, "MEDIUM", 19.7, "MEDIUM"),
+        (10, 24, 14.4, "LOW",    24.1, "LOW"),
+        (5,  55, 33.0, "HIGH",    9.8, "HIGH"),
+    ]
+    seeded_trend = 0
+    for (mins_back, vcount, pcu_val, cong, speed, tlevel) in bucket_specs:
+        raw_t   = now - timedelta(minutes=mins_back)
+        bucket  = raw_t.replace(minute=(raw_t.minute // 5) * 5, second=0, microsecond=0)
+        existing = TrafficTrend.query.filter_by(junction_id=j_id, time_bucket=bucket).first()
+        if existing is None:
+            db.session.add(TrafficTrend(
+                junction_id      = j_id,
+                junction_name    = j_name,
+                time_bucket      = bucket,
+                vehicle_count    = vcount,
+                pcu              = pcu_val,
+                congestion_level = cong,
+                average_speed    = speed,
+                traffic_level    = tlevel,
+                created_at       = now,
+            ))
+            seeded_trend += 1
+
+    # --- DecisionLog seed (only if table is completely empty) ---
+    seeded_logs = 0
+    if DecisionLog.query.count() == 0:
+        log_specs = [
+            # (mins_back, direction, decision, reason, traffic_level, cong_level, pcu, green_time, module)
+            (10,  "NORTH", "EXTEND GREEN",   "High congestion — PCU=28.5, queue=15",  "HIGH",   "HIGH",   28.5, 52.0, "adaptive_signal"),
+            (20,  "EAST",  "ADAPTIVE",       "Hold GREEN 30s (PCU=22.1, MEDIUM)",     "MEDIUM", "MEDIUM", 22.1, 30.0, "adaptive_signal"),
+            (30,  "SOUTH", "REDUCE GREEN",   "Low demand — PCU=10.8, queue=4",        "LOW",    "LOW",    10.8, 18.0, "adaptive_signal"),
+            (40,  "WEST",  "MANUAL OVERRIDE","Operator override — phase extended",    "HIGH",   "HIGH",   24.6, 45.0, "manual_override"),
+        ]
+        for (mins_back, direction, decision, reason, tlevel, clevel, pcu_val, gtime, module) in log_specs:
+            db.session.add(DecisionLog(
+                module           = module,
+                junction_id      = j_id,
+                junction_name    = j_name,
+                direction        = direction,
+                decision         = decision,
+                reason           = reason,
+                traffic_level    = tlevel,
+                congestion_level = clevel,
+                pcu              = pcu_val,
+                green_time       = gtime,
+                created_at       = now - timedelta(minutes=mins_back),
+            ))
+            seeded_logs += 1
+
+    db.session.commit()
+    return jsonify({
+        "ok": True,
+        "seeded_trend_rows": seeded_trend,
+        "seeded_decision_logs": seeded_logs,
+        "message": f"Seeded {seeded_trend} TrafficTrend rows and {seeded_logs} DecisionLog rows.",
+    })
+
+
 @legacy_bp.route("/api/decision_logs")
 @login_required
 def api_decision_logs():
     """
-    Detailed decision logs query endpoint.
-    Filters by junction, time range, decision type.
-    Returns paginated JSON response.
+    Decision logs — queries the DecisionLog table (DB-backed).
+    Falls back to SignalPlanHistory if DecisionLog is empty (backward compat).
     """
-    junction_key = request.args.get("junction", "all")
-    time_range   = request.args.get("range", "today").lower()
-    decision_type = request.args.get("type", "all").lower()
-    page         = request.args.get("page", 1, type=int)
-    per_page     = request.args.get("per_page", 5, type=int)
+    from app.models.decision_log import DecisionLog
 
-    query = SignalPlanHistory.query
+    junction_filter  = request.args.get("junction", "all")
+    time_range       = request.args.get("range",    "today").lower()
+    decision_type    = request.args.get("type",     "all").lower()
+    page             = request.args.get("page",     1, type=int)
+    per_page         = request.args.get("per_page", 5, type=int)
 
-    # Junction filter
-    if junction_key != "all":
-        j_obj = Junction.query.filter_by(name=f"Junction {junction_key}").first()
-        if j_obj:
-            query = query.filter_by(junction_id=j_obj.id)
+    # ── Build query ───────────────────────────────────────────────────────
+    query = DecisionLog.query
+
+    if junction_filter != "all":
+        # Accept either short key ("A") or full name ("Rahate Colony Square")
+        if len(junction_filter) <= 2:
+            query = query.filter(
+                DecisionLog.junction_name.like(f"Junction {junction_filter}%")
+            )
         else:
-            # If junction doesn't exist, return empty
-            return jsonify({
-                "rows": [],
-                "pagination": {
-                    "current_page": page,
-                    "per_page": per_page,
-                    "total_rows": 0,
-                    "total_pages": 0
-                }
-            })
+            query = query.filter(DecisionLog.junction_name == junction_filter)
 
-    # Time range filter
     now = datetime.utcnow()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-
     if time_range == "today":
-        query = query.filter(SignalPlanHistory.applied_at >= today_start)
+        query = query.filter(DecisionLog.created_at >= today_start)
     elif time_range == "yesterday":
-        yesterday_start = today_start - timedelta(days=1)
-        query = query.filter(SignalPlanHistory.applied_at >= yesterday_start, SignalPlanHistory.applied_at < today_start)
+        query = query.filter(
+            DecisionLog.created_at >= today_start - timedelta(days=1),
+            DecisionLog.created_at <  today_start,
+        )
     elif time_range == "7days":
-        start_date = today_start - timedelta(days=7)
-        query = query.filter(SignalPlanHistory.applied_at >= start_date)
+        query = query.filter(DecisionLog.created_at >= today_start - timedelta(days=7))
     elif time_range == "30days":
-        start_date = today_start - timedelta(days=30)
-        query = query.filter(SignalPlanHistory.applied_at >= start_date)
+        query = query.filter(DecisionLog.created_at >= today_start - timedelta(days=30))
 
-    # Decision type filter
     if decision_type != "all":
-        query = query.filter_by(decision_type=decision_type)
+        # Map UI value → module/decision column value
+        if decision_type == "adaptive":
+            query = query.filter(DecisionLog.module == "adaptive_signal")
+        elif decision_type == "manual_override":
+            query = query.filter(DecisionLog.module == "manual_override")
+        elif decision_type == "emergency":
+            query = query.filter(DecisionLog.module == "emergency_corridor")
 
-    # Ordering
-    query = query.order_by(SignalPlanHistory.applied_at.desc())
+    query = query.order_by(DecisionLog.created_at.desc())
 
-    # Pagination
+    # ── Check if we have any DecisionLog rows at all ──────────────────────
+    if DecisionLog.query.count() == 0:
+        # Fall back to SignalPlanHistory for backward compatibility
+        return _api_decision_logs_legacy(junction_filter, time_range, decision_type, page, per_page)
+
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    rows_data = [
-        {
-            "time":             h.applied_at.strftime("%I:%M %p"),
-            "junction":         h.junction.name if h.junction else f"Junction {h.junction_id}",
-            "decision_type":    h.decision_type,
-            "recommended_plan": f"A:{h.phase_a_sec} B:{h.phase_b_sec} C:{h.phase_c_sec} D:{h.phase_d_sec}",
-            "applied_by":       h.applied_by,
-        }
-        for h in pagination.items
-    ]
+    rows_data = []
+    for log in pagination.items:
+        # Build a plan summary from green_time or metadata
+        plan_summary = ""
+        if log.green_time:
+            dir_label = (log.direction or "").upper()
+            plan_summary = f"{dir_label}: {log.green_time:.0f}s"
+        elif log.metadata_ and isinstance(log.metadata_, dict):
+            phases = log.metadata_.get("signal_plan", [])
+            if phases:
+                plan_summary = "  ".join(
+                    f"{p.get('direction_label','?')}:{p.get('green_time_sec',0):.0f}s"
+                    for p in phases[:4]
+                )
+        if not plan_summary:
+            plan_summary = log.decision or "—"
+
+        rows_data.append({
+            "time":             log.created_at.strftime("%I:%M %p"),
+            "junction":         log.junction_name or "—",
+            "direction":        log.direction or "—",
+            "decision":         log.decision or "—",
+            "decision_type":    log.module or "adaptive",
+            "traffic_level":    log.traffic_level or "—",
+            "congestion_level": log.congestion_level or "—",
+            "pcu":              round(log.pcu, 1) if log.pcu else "—",
+            "green_time":       round(log.green_time, 0) if log.green_time else "—",
+            "reason":           log.reason or "",
+            "recommended_plan": plan_summary,
+            "applied_by":       "System" if log.module == "adaptive_signal" else "Operator",
+        })
 
     return jsonify({
         "rows": rows_data,
@@ -622,7 +803,69 @@ def api_decision_logs():
             "per_page":     pagination.per_page,
             "total_rows":   pagination.total,
             "total_pages":  pagination.pages,
+        },
+    })
+
+
+def _api_decision_logs_legacy(junction_filter, time_range, decision_type, page, per_page):
+    """Backward-compat fallback: query SignalPlanHistory when DecisionLog is empty."""
+    query = SignalPlanHistory.query
+
+    if junction_filter != "all":
+        j_obj = Junction.query.filter_by(name=f"Junction {junction_filter}").first()
+        if j_obj:
+            query = query.filter_by(junction_id=j_obj.id)
+        else:
+            return jsonify({"rows": [], "pagination": {
+                "current_page": page, "per_page": per_page,
+                "total_rows": 0, "total_pages": 0}})
+
+    now = datetime.utcnow()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    if time_range == "today":
+        query = query.filter(SignalPlanHistory.applied_at >= today_start)
+    elif time_range == "yesterday":
+        query = query.filter(
+            SignalPlanHistory.applied_at >= today_start - timedelta(days=1),
+            SignalPlanHistory.applied_at <  today_start)
+    elif time_range == "7days":
+        query = query.filter(SignalPlanHistory.applied_at >= today_start - timedelta(days=7))
+    elif time_range == "30days":
+        query = query.filter(SignalPlanHistory.applied_at >= today_start - timedelta(days=30))
+
+    if decision_type not in ("all", "adaptive", "manual_override"):
+        decision_type = "all"
+    if decision_type != "all":
+        query = query.filter_by(decision_type=decision_type)
+
+    query = query.order_by(SignalPlanHistory.applied_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    rows_data = [
+        {
+            "time":             h.applied_at.strftime("%I:%M %p"),
+            "junction":         h.junction.name if h.junction else f"Junction {h.junction_id}",
+            "direction":        "—",
+            "decision":         h.decision_type.replace("_", " ").title(),
+            "decision_type":    h.decision_type,
+            "traffic_level":    "—",
+            "congestion_level": "—",
+            "pcu":              "—",
+            "green_time":       "—",
+            "reason":           "",
+            "recommended_plan": f"A:{h.phase_a_sec} B:{h.phase_b_sec} C:{h.phase_c_sec} D:{h.phase_d_sec}",
+            "applied_by":       h.applied_by,
         }
+        for h in pagination.items
+    ]
+    return jsonify({
+        "rows": rows_data,
+        "pagination": {
+            "current_page": pagination.page,
+            "per_page":     pagination.per_page,
+            "total_rows":   pagination.total,
+            "total_pages":  pagination.pages,
+        },
     })
 
 
@@ -971,9 +1214,30 @@ def api_incidents_alerts():
 @legacy_bp.route("/live-video")
 @login_required
 def live_video():
-    """Screen 9: Live Junction Video."""
-    selected = request.args.get("junction", "A")
-    return render_template("live-video.html", active_page="live_video", selected_junction=selected)
+    """Screen 9: Live Junction Video — dropdown of all configured junctions."""
+    from app.models.adaptive_signal_state import AdaptiveSignalState
+
+    # All junctions with at least one AdaptiveSignalState row OR all seeded junctions
+    all_junctions = Junction.query.order_by(Junction.name).all()
+
+    # Build a list of keys that match the ADAPTIVE_JUNCTIONS map + any DB junction
+    # Use the full name as the key for cleanliness
+    junction_options = [
+        {"key": j.name, "label": j.name}
+        for j in all_junctions
+    ]
+
+    # Default: first junction in the list, or URL param
+    default_key = request.args.get("junction", "")
+    if not default_key and junction_options:
+        default_key = junction_options[0]["key"]
+
+    return render_template(
+        "live-video.html",
+        active_page="live_video",
+        selected_junction=default_key,
+        junction_options=junction_options,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -984,44 +1248,135 @@ def live_video():
 _recording_state: dict = {}
 
 
-@legacy_bp.route("/api/live_video_stats")
-@login_required
-def api_live_video_stats():
+@legacy_bp.route("/api/live_demo_stats")
+def api_live_demo_stats():
     """
-    Per-junction live video stats.
-    # MOCK — shares the same traffic_state_map as Screen 3 (api_junction_signal).
-    # TODO: Once the backend pipeline exposes a unified per-junction endpoint,
-    # both Screen 3 and Screen 9 should point at that single source rather than
-    # maintaining separate mocks here.
+    Returns traffic stats for a given demo part (1-4) from the static JSON files.
+    These are the real detection results from the pre-recorded CCTV footage.
+    No login required — called from the live-video demo page.
     """
-    junction_key = request.args.get("junction", "A")
+    import json as _json
+    from pathlib import Path
 
-    # ── MOCK: traffic state (same source as Screen 3) ───────────────────────
-    # TODO: replace with real PCU / queue / speed readings from detection pipeline
-    traffic_state_map = {
-        "A": {"pcu": 48,  "queue_length_m": 72,  "avg_speed_kmh": 18,  "traffic_state": "high"},
-        "B": {"pcu": 32,  "queue_length_m": 45,  "avg_speed_kmh": 24,  "traffic_state": "moderate"},
-        "C": {"pcu": 15,  "queue_length_m": 20,  "avg_speed_kmh": 38,  "traffic_state": "low"},
-        "D": {"pcu": 27,  "queue_length_m": 38,  "avg_speed_kmh": 29,  "traffic_state": "moderate"},
-    }
-    stats = traffic_state_map.get(junction_key, traffic_state_map["A"])
+    part = request.args.get("part", "1")
+    try:
+        part_num = int(part)
+        if part_num < 1 or part_num > 4:
+            part_num = 1
+    except ValueError:
+        part_num = 1
 
-    # ── REAL: resolve camera URL from DB ────────────────────────────────────
-    j = Junction.query.filter_by(name=f"Junction {junction_key}").first()
-    camera_url = (j.camera_thumbnail_url or "") if j else ""
+    json_path = Path(__file__).resolve().parent.parent.parent / "static" / "videos" / f"part-{part_num}.json"
+    try:
+        with open(json_path, encoding="utf-8") as f:
+            raw = _json.load(f)
+    except Exception:
+        return jsonify({"error": "data not found"}), 404
 
-    # ── Timestamp ───────────────────────────────────────────────────────────
+    counts = raw.get("vehicle_counts", {})
+    total  = raw.get("total_unique_tracked_vehicles", 0)
+
+    # PCU weights (standard Indian road PCU equivalents)
+    PCU = {"car": 1.0, "motorcycle": 0.5, "bus": 3.0, "truck": 3.0, "auto": 0.8}
+    pcu = sum(counts.get(k, 0) * v for k, v in PCU.items())
+    pcu = round(pcu, 1)
+
+    # Derive traffic level from PCU
+    if pcu >= 400:
+        traffic_level = "HIGH"
+        congestion    = "HIGH"
+    elif pcu >= 200:
+        traffic_level = "MEDIUM"
+        congestion    = "MEDIUM"
+    else:
+        traffic_level = "LOW"
+        congestion    = "LOW"
+
+    # Estimated queue length proxy: roughly 1 vehicle ≈ 5–6 m
+    queue_m = min(int(total * 0.18), 150)  # rough proxy
+
+    return jsonify({
+        "part":             part_num,
+        "video_url":        f"/static/videos/part-{part_num}-result.mp4",
+        "total_vehicles":   total,
+        "vehicle_counts":   counts,
+        "pcu":              pcu,
+        "traffic_level":    traffic_level,
+        "congestion_level": congestion,
+        "queue_length":     queue_m,
+        "data_available":   True,
+    })
+    """
+    Per-junction live video stats — DB-backed from AdaptiveSignalState.
+    Falls back to neutral defaults if no pipeline data exists yet.
+    """
+    from app.models.adaptive_signal_state import AdaptiveSignalState
+
+    junction_key = request.args.get("junction", "")
+
+    # Accept full junction name or short letter key
+    j = None
+    if junction_key:
+        j = Junction.query.filter_by(name=junction_key).first()
+        if j is None and len(junction_key) <= 2:
+            j = Junction.query.filter_by(name=f"Junction {junction_key}").first()
+
+    junction_name = j.name if j else (junction_key or "Junction A")
+    camera_url    = (j.camera_thumbnail_url or "") if j else ""
+
+    # Find the worst direction for this junction (highest congestion)
+    states = (
+        AdaptiveSignalState.query
+        .filter_by(junction_name=junction_name)
+        .all()
+    )
+
+    if states:
+        # Use worst-congestion direction as the representative state
+        level_order = {"HIGH": 2, "MEDIUM": 1, "LOW": 0}
+        worst = max(states, key=lambda s: level_order.get((s.congestion_level or "LOW").upper(), 0))
+        traffic_state_val = (worst.traffic_level or "low").lower()
+        pcu               = round(worst.pcu_demand, 1)
+        queue_length_m    = worst.queue_length
+        avg_speed_kmh     = round(worst.average_speed, 1)
+        vehicle_count     = worst.vehicle_count_total
+        density           = round(worst.density, 3)
+        occupancy         = round(worst.occupancy, 3)
+        waiting_time      = round(worst.waiting_time, 1)
+        congestion_level  = (worst.congestion_level or "LOW").upper()
+        # Vehicle breakdown
+        vc_by_class = dict(worst.vehicle_count_by_class) if worst.vehicle_count_by_class else {}
+    else:
+        # No pipeline data yet — neutral empty state
+        traffic_state_val = "low"
+        pcu               = 0
+        queue_length_m    = 0
+        avg_speed_kmh     = 0
+        vehicle_count     = 0
+        density           = 0.0
+        occupancy         = 0.0
+        waiting_time      = 0.0
+        congestion_level  = "LOW"
+        vc_by_class       = {"car": 0, "bus": 0, "truck": 0, "bike": 0, "auto": 0}
+
     now_str = datetime.now().strftime("%I:%M:%S %p").lstrip("0")
 
     return jsonify({
-        "junction":       f"Junction {junction_key}",
-        "camera_label":   "Camera 01",
-        "camera_url":     camera_url,
-        "traffic_state":  stats["traffic_state"],
-        "pcu":            stats["pcu"],
-        "queue_length_m": stats["queue_length_m"],
-        "avg_speed_kmh":  stats["avg_speed_kmh"],
-        "last_updated":   now_str,
+        "junction":        junction_name,
+        "camera_label":    "Camera 01",
+        "camera_url":      camera_url,
+        "traffic_state":   traffic_state_val,
+        "congestion_level": congestion_level,
+        "pcu":             pcu,
+        "vehicle_count":   vehicle_count,
+        "vehicle_breakdown": vc_by_class,
+        "queue_length_m":  queue_length_m,
+        "avg_speed_kmh":   avg_speed_kmh,
+        "density":         density,
+        "occupancy":       occupancy,
+        "waiting_time":    waiting_time,
+        "last_updated":    now_str,
+        "data_available":  len(states) > 0,
     })
 
 
@@ -1462,20 +1817,26 @@ def api_junctions_crud():
     if request.method == "POST":
         body = request.get_json(force=True) or {}
         name = body.get("name")
+        lat = body.get("lat")
+        lng = body.get("lng")
+        junction_type = body.get("junction_type", "square")
         status = body.get("status", "low")
         thumbnail = body.get("camera_thumbnail_url")
         if not name:
             return jsonify({"error": "Name is required"}), 400
         
-        j = Junction(name=name, status=status, camera_thumbnail_url=thumbnail, last_updated=datetime.utcnow())
+        j = Junction(name=name, lat=lat, lng=lng, junction_type=junction_type, status=status, camera_thumbnail_url=thumbnail, last_updated=datetime.utcnow())
         db.session.add(j)
         db.session.commit()
-        return jsonify({"id": j.id, "name": j.name, "status": j.status, "camera_thumbnail_url": j.camera_thumbnail_url})
+        return jsonify({"id": j.id, "name": j.name, "lat": j.lat, "lng": j.lng, "junction_type": j.junction_type, "status": j.status, "camera_thumbnail_url": j.camera_thumbnail_url})
 
     junctions = Junction.query.order_by(Junction.name).all()
     return jsonify([{
         "id": j.id,
         "name": j.name,
+        "lat": j.lat,
+        "lng": j.lng,
+        "junction_type": j.junction_type,
         "status": j.status,
         "camera_thumbnail_url": j.camera_thumbnail_url or "",
         "last_updated": j.last_updated.strftime("%Y-%m-%d %I:%M %p")
@@ -1489,6 +1850,9 @@ def api_junction_update(j_id):
     j = Junction.query.get_or_404(j_id)
     body = request.get_json(force=True) or {}
     j.name = body.get("name", j.name)
+    j.lat = body.get("lat", j.lat)
+    j.lng = body.get("lng", j.lng)
+    j.junction_type = body.get("junction_type", j.junction_type)
     j.status = body.get("status", j.status)
     j.camera_thumbnail_url = body.get("camera_thumbnail_url", j.camera_thumbnail_url)
     j.last_updated = datetime.utcnow()
@@ -1502,27 +1866,31 @@ def api_vms_boards_crud():
     """GET list of VMS boards or POST a new VMS board."""
     if request.method == "POST":
         body = request.get_json(force=True) or {}
-        vms_id = body.get("vms_id")
         location = body.get("location")
+        lat = body.get("lat")
+        lng = body.get("lng")
         status = body.get("status", "active")
         current_message = body.get("current_message", "")
-        if not vms_id or not location:
-            return jsonify({"error": "vms_id and location are required"}), 400
         
-        # Check uniqueness
-        if VMSBoard.query.filter_by(vms_id=vms_id).first():
-            return jsonify({"error": f"VMS ID {vms_id} already exists"}), 400
+        if not location:
+            return jsonify({"error": "Location is required"}), 400
+        
+        # Auto-generate VMS ID
+        max_id = db.session.query(db.func.max(VMSBoard.id)).scalar() or 0
+        vms_id = f"VMS-{max_id + 1}"
 
-        v = VMSBoard(vms_id=vms_id, location=location, status=status, current_message=current_message)
+        v = VMSBoard(vms_id=vms_id, location=location, lat=lat, lng=lng, status=status, current_message=current_message)
         db.session.add(v)
         db.session.commit()
-        return jsonify({"id": v.id, "vms_id": v.vms_id, "location": v.location, "status": v.status, "current_message": v.current_message})
+        return jsonify({"id": v.id, "vms_id": v.vms_id, "location": v.location, "lat": v.lat, "lng": v.lng, "status": v.status, "current_message": v.current_message})
 
     boards = VMSBoard.query.order_by(VMSBoard.vms_id).all()
     return jsonify([{
         "id": v.id,
         "vms_id": v.vms_id,
         "location": v.location,
+        "lat": v.lat,
+        "lng": v.lng,
         "status": v.status,
         "current_message": v.current_message or ""
     } for v in boards])
@@ -1534,8 +1902,9 @@ def api_vms_update(v_id):
     """PUT to update an existing VMS board."""
     v = VMSBoard.query.get_or_404(v_id)
     body = request.get_json(force=True) or {}
-    v.vms_id = body.get("vms_id", v.vms_id)
     v.location = body.get("location", v.location)
+    v.lat = body.get("lat", v.lat)
+    v.lng = body.get("lng", v.lng)
     v.status = body.get("status", v.status)
     v.current_message = body.get("current_message", v.current_message)
     db.session.commit()
@@ -1554,17 +1923,25 @@ def api_users_crud():
         username = body.get("username")
         password = body.get("password")
         role = body.get("role", "operator")
+        mobile = (body.get("mobile") or "").strip() or None
 
         if not username or not password:
             return jsonify({"error": "username and password are required"}), 400
 
+        if role == "driver" and not mobile:
+            return jsonify({"error": "mobile is required for driver accounts"}), 400
+
         if User.query.filter_by(username=username).first():
             return jsonify({"error": f"Username {username} already exists"}), 400
+
+        if mobile and User.query.filter_by(mobile=mobile).first():
+            return jsonify({"error": f"Mobile number {mobile} is already registered"}), 400
 
         u = User(
             username=username,
             password_hash=generate_password_hash(password),
             role=role,
+            mobile=mobile,
             created_at=datetime.utcnow()
         )
         db.session.add(u)
@@ -1573,6 +1950,7 @@ def api_users_crud():
             "id": u.id,
             "username": u.username,
             "role": u.role,
+            "mobile": u.mobile,
             "created_at": u.created_at.strftime("%Y-%m-%d")
         })
 
@@ -1581,6 +1959,7 @@ def api_users_crud():
         "id": u.id,
         "username": u.username,
         "role": u.role,
+        "mobile": u.mobile or "",
         "last_login": u.last_login_at.strftime("%Y-%m-%d %I:%M %p") if u.last_login_at else "Never",
         "created_at": u.created_at.strftime("%Y-%m-%d %I:%M %p")
     } for u in users])

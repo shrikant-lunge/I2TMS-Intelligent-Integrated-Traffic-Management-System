@@ -392,6 +392,541 @@
     }
 
     // ── Polling ────────────────────────────────────────────────
+    function pollStatus() {
+      fetch('/api/emergency/status', { credentials: 'same-origin' })
+        .then(function(r){ return r.json(); })
+        .then(function(json){
+          if (json.status !== 'success') return;
+          var d = json.data;
+          if (!d) return;
+
+          var amb = d.ambulance || {};
+
+          // Move ambulance marker
+          if (amb.lat && amb.lat !== 0) {
+            ambMarker.setLatLng([amb.lat, amb.lon]);
+          }
+
+          // Draw route line (once)
+          if (!routeLine && d.source && d.destination) {
+            var src  = d.source;
+            var dest = d.destination;
+            routeLine = L.polyline([[src.lat, src.lon], [dest.lat, dest.lon]], {
+              color: '#0EA5A0', weight: 5, opacity: 0.8, dashArray: '8 4'
+            }).addTo(map);
+          }
+
+          // Junction markers
+          (d.junctions || []).forEach(function(j){
+            if (!j.lat || j.lat === 0) return;
+            if (!juncMarkers[j.id]) {
+              juncMarkers[j.id] = L.marker([j.lat, j.lon], {
+                icon: junctionIcon(j.status), zIndexOffset: 200
+              }).bindTooltip('<b>' + j.name + '</b>', { permanent: false, direction: 'top' })
+                .addTo(map);
+            } else {
+              juncMarkers[j.id].setIcon(junctionIcon(j.status));
+            }
+          });
+
+          // VMS markers
+          (d.vms_boards || []).forEach(function(v){
+            if (!v.lat || v.lat === 0) return;
+            if (!vmsMarkers[v.id]) {
+              vmsMarkers[v.id] = L.marker([v.lat, v.lon], {
+                icon: vmsIcon(v.message, v.status), zIndexOffset: 100
+              }).bindTooltip(v.name, { permanent: false, direction: 'top' })
+                .addTo(map);
+            } else {
+              vmsMarkers[v.id].setIcon(vmsIcon(v.message, v.status));
+            }
+          });
+
+          // Pan map to keep ambulance in view
+          if (amb.lat && amb.lat !== 0) {
+            var mapBounds = map.getBounds();
+            var ambLatLng = L.latLng(amb.lat, amb.lon);
+            if (!mapBounds.contains(ambLatLng)) {
+              map.panTo(ambLatLng, { animate: true, duration: 0.5 });
+            }
+          }
+
+          // Start ANPR video when triggered
+          var anprData = d.anpr || {};
+          if (anprData.started && !videoStarted && anprVideo) {
+            videoStarted = true;
+            anprVideo.play().catch(function(){});
+          }
+
+          // Sync ANPR log from server history
+          var history = anprData.history || [];
+          history.forEach(function(entry){
+            var key = 'srv_' + entry.frame + '_' + entry.plate;
+            if (anprEmitted[key]) return;
+            anprEmitted[key] = true;
+            addAnprRow(entry);
+          });
+
+          // Stop polling when done
+          if (d.state === 'CORRIDOR_COMPLETED') {
+            clearInterval(liveTimer);
+            var pill = document.querySelector('.ec-pill-active');
+            if (pill) { pill.className = 'ec-pill ec-pill-completed'; pill.textContent = 'COMPLETED'; }
+          }
+        })
+        .catch(function(){});
+    }
+
+    // ── ANPR log row ───────────────────────────────────────────
+    function addAnprRow(entry) {
+      anprCount++;
+
+      // Remove empty placeholder
+      var empty = anprList.querySelector('.ec-anpr-empty');
+      if (empty) empty.remove();
+
+      var time = entry.log_time || new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      var confPct = Math.round((entry.confidence || 0) * 100);
+
+      var row = document.createElement('div');
+      row.className = 'ec-anpr-entry' + (entry.is_primary ? ' primary' : '');
+      row.style.cssText = 'animation:anpr-slide-in 0.3s ease;';
+      row.innerHTML =
+        '<div class="ec-anpr-dot"></div>' +
+        '<div>' +
+          '<div class="ec-anpr-plate">' + entry.plate + '</div>' +
+          '<div class="ec-anpr-source">' + (entry.source || 'Ambulance CCTV') + '</div>' +
+        '</div>' +
+        '<div style="margin-left:auto;text-align:right;">' +
+          '<div class="ec-anpr-time">' + time + '</div>' +
+          '<div class="ec-anpr-conf">' + confPct + '%</div>' +
+          (entry.is_primary ? '<div style="font-size:9px;color:#0EA5A0;font-weight:700;">PRIMARY</div>' : '') +
+        '</div>';
+
+      // Newest at top
+      anprList.insertBefore(row, anprList.firstChild);
+
+      if (anprCountPill) {
+        anprCountPill.textContent = anprCount + ' detection' + (anprCount !== 1 ? 's' : '');
+        anprCountPill.className = 'ec-pill ec-pill-active';
+      }
+    }
+
+    // Inject ANPR slide-in animation
+    var anprStyle = document.createElement('style');
+    anprStyle.textContent = '@keyframes anpr-slide-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}';
+    document.head.appendChild(anprStyle);
+
+    // Start video immediately (muted autoplay)
+    if (anprVideo) {
+      anprVideo.muted = true;
+      anprVideo.play().catch(function(){});
+    }
+
+    var liveTimer = setInterval(pollStatus, 1500);
+    pollStatus(); // immediate first call
+  }
+
+})();
+</script>
+{% endblock %}
+
+{% extends "base.html" %}
+
+{% block page_title %}Corridor {{ corridor_id }} — I²TMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emergency_corridor.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/emergency_corridor_detail.css') }}" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      Emergency Corridor
+      <code class="ecd-id-badge">{{ corridor_id }}</code>
+    </h1>
+    <p class="page-subtitle">
+      {{ corridor.source_name }} &rarr; {{ corridor.destination_name }}
+      &nbsp;&bull;&nbsp;
+      {% if corridor.status == 'ACTIVE' %}
+        <span class="corridor-badge corridor-badge-active">ACTIVE</span>
+      {% elif corridor.status == 'COMPLETED' %}
+        <span class="corridor-badge corridor-badge-completed">COMPLETED</span>
+      {% else %}
+        <span class="corridor-badge corridor-badge-closed">CLOSED</span>
+      {% endif %}
+    </p>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="/emergency-corridor/{{ corridor_id }}/export/anpr"
+       class="ec-btn ec-btn-ghost" style="text-decoration:none;font-size:0.82rem;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export ANPR Log
+    </a>
+    <a href="/emergency-corridor/{{ corridor_id }}/export/report"
+       class="ec-btn ec-btn-ghost" style="text-decoration:none;font-size:0.82rem;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export Corridor Report
+    </a>
+    <a href="/emergency-corridor" class="ec-btn ec-btn-ghost" style="text-decoration:none;">← Back</a>
+  </div>
+</div>
+
+<div class="ecd-layout">
+
+  <!-- ── Left: Map + ANPR ──────────────────────────────────────── -->
+  <div class="ecd-left">
+
+    <!-- Map -->
+    <div class="ec-card ecd-map-card">
+      <div class="ec-card-header">
+        <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg> Route Map</h2>
+        <span class="ec-pill {% if corridor.status == 'ACTIVE' %}ec-pill-active{% elif corridor.status == 'COMPLETED' %}ec-pill-completed{% else %}ec-pill-idle{% endif %}">
+          {% if corridor.status == 'ACTIVE' %}<span class="dot"></span>{% endif %}
+          {{ corridor.status }}
+        </span>
+      </div>
+      <div id="ecd-map"></div>
+    </div>
+
+    <!-- Ambulance bonnet camera + ANPR history -->
+    <div class="ecd-bottom-row">
+
+      <!-- Bonnet camera -->
+      <div class="ec-card ecd-camera-card">
+        <div class="ec-card-header">
+          <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ambulance Bonnet Camera</h2>
+          {% if corridor.status == 'ACTIVE' %}
+          <span class="ec-pill ec-pill-active"><span class="dot"></span>LIVE ANPR</span>
+          {% else %}
+          <span class="ec-pill ec-pill-idle">ANPR Demo</span>
+          {% endif %}
+        </div>
+        <div class="ec-card-body ecd-video-body">
+          {% if corridor.status == 'ACTIVE' %}
+          <div class="ec-anpr-video-wrap">
+            <video id="ecd-anpr-video"
+                   src="{{ url_for('static', filename='videos/final-bonnet-ouput.mp4') }}"
+                   autoplay
+                   loop
+                   muted
+                   playsinline
+                   style="width:100%;border-radius:0 0 8px 8px;display:block;max-height:260px;object-fit:cover;"></video>
+            <div class="ec-anpr-overlay">
+              <span class="dot"></span>ANPR LIVE DETECTION
+            </div>
+          </div>
+          {% else %}
+          <div class="ecd-camera-offline">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            <span>Corridor {{ corridor.status|lower }} — replay ended</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ANPR history -->
+      <div class="ec-card ecd-anpr-card">
+        <div class="ec-card-header">
+          <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> ANPR Detection Log</h2>
+          <span class="ec-pill ec-pill-idle" id="ecd-anpr-count">{{ anpr_detections|length }} detections</span>
+        </div>
+        <div class="ec-card-body" style="padding:0;">
+        <div class="ec-anpr-history" style="max-height:260px;overflow-y:auto;" id="ecd-anpr-list">
+            {% if anpr_detections %}
+              {% for det in anpr_detections %}
+              <div class="ec-anpr-entry {% if det.is_primary %}primary{% endif %}">
+                <div class="ec-anpr-dot"></div>
+                <div>
+                  <div class="ec-anpr-plate">{{ det.plate_number }}</div>
+                  <div class="ec-anpr-source">{{ det.checkpoint_name or det.source or 'Ambulance CCTV' }}</div>
+                  {% if det.latitude and det.longitude %}
+                  <div style="font-size:10px;color:#9CA3AF;">
+                    {{ "%.4f"|format(det.latitude) }}, {{ "%.4f"|format(det.longitude) }}
+                  </div>
+                  {% endif %}
+                </div>
+                <div style="margin-left:auto;text-align:right;">
+                  <div class="ec-anpr-time">{{ det.detected_at.strftime('%H:%M:%S') }}</div>
+                  {% if det.confidence %}
+                  <div class="ec-anpr-conf">{{ "%.1f"|format(det.confidence * 100) }}%</div>
+                  {% endif %}
+                  {% if det.is_primary %}
+                  <div style="font-size:9px;color:#0EA5A0;font-weight:700;margin-top:2px;">PRIMARY</div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="ec-anpr-empty">No ANPR detections recorded for this corridor.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.ecd-bottom-row -->
+  </div><!-- /.ecd-left -->
+
+  <!-- ── Right: Metrics + Events ───────────────────────────────── -->
+  <div class="ecd-right">
+
+    <!-- Journey metrics -->
+    <div class="ec-card">
+      <div class="ec-card-header"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Journey Metrics</h2></div>
+      <div class="ec-card-body">
+        <div class="ecd-metric-grid">
+
+          <div class="ecd-metric-row">
+            <span class="ecd-metric-label">Departure</span>
+            <span class="ecd-metric-value">
+              {% if metrics and metrics.departure_time %}
+                {{ metrics.departure_time.strftime('%I:%M:%S %p') }}
+              {% elif corridor.started_at %}
+                {{ corridor.started_at.strftime('%I:%M:%S %p') }}
+              {% else %}—{% endif %}
+            </span>
+          </div>
+
+          <div class="ecd-metric-row">
+            <span class="ecd-metric-label">Arrival</span>
+            <span class="ecd-metric-value">
+              {% if metrics and metrics.arrival_time %}
+                {{ metrics.arrival_time.strftime('%I:%M:%S %p') }}
+              {% elif corridor.completed_at %}
+                {{ corridor.completed_at.strftime('%I:%M:%S %p') }}
+              {% else %}—{% endif %}
+            </span>
+          </div>
+
+          <div class="ecd-metric-row">
+            <span class="ecd-metric-label">Total Duration</span>
+            <span class="ecd-metric-value ecd-highlight">
+              {% if metrics and metrics.actual_or_simulated_eta_minutes %}
+                {{ "%.0f"|format(metrics.actual_or_simulated_eta_minutes) }} min
+              {% elif corridor.optimized_eta_minutes %}
+                {{ "%.0f"|format(corridor.optimized_eta_minutes) }} min
+              {% else %}—{% endif %}
+            </span>
+          </div>
+
+          <div class="ecd-metric-row">
+            <span class="ecd-metric-label">Baseline ETA</span>
+            <span class="ecd-metric-value">
+              {{ "%.0f"|format(corridor.baseline_eta_minutes) + ' min' if corridor.baseline_eta_minutes else '—' }}
+            </span>
+          </div>
+
+          <div class="ecd-metric-row">
+            <span class="ecd-metric-label">Time Saved</span>
+            <span class="ecd-metric-value ecd-green">
+              {% if metrics and metrics.time_saved_minutes %}
+                −{{ "%.0f"|format(metrics.time_saved_minutes) }} min
+              {% elif corridor.time_saved_minutes %}
+                −{{ "%.0f"|format(corridor.time_saved_minutes) }} min
+              {% else %}—{% endif %}
+            </span>
+          </div>
+
+          <div class="ecd-metric-row">
+            <span class="ecd-metric-label">Distance</span>
+            <span class="ecd-metric-value">
+              {{ "%.1f"|format(corridor.distance_km) + ' km' if corridor.distance_km else '—' }}
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Signal / VMS / ANPR stats -->
+        <div class="ecd-stat-chips">
+          <div class="ecd-chip">
+            <span class="ecd-chip-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="2" fill="currentColor" stroke="none"/></svg></span>
+            <span class="ecd-chip-val">
+              {% if metrics %}{{ metrics.signals_prioritized }}{% else %}—{% endif %}
+            </span>
+            <span class="ecd-chip-label">Signals prioritized</span>
+          </div>
+          <div class="ecd-chip">
+            <span class="ecd-chip-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="6" x2="1" y2="18"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="11" y1="6" x2="11" y2="18"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="21" y1="6" x2="21" y2="18"/></svg></span>
+            <span class="ecd-chip-val">
+              {% if metrics %}{{ metrics.vms_activated }}{% else %}—{% endif %}
+            </span>
+            <span class="ecd-chip-label">VMS activated</span>
+          </div>
+          <div class="ecd-chip">
+            <span class="ecd-chip-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <span class="ecd-chip-val">{{ anpr_detections|length }}</span>
+            <span class="ecd-chip-label">ANPR detections</span>
+          </div>
+          <div class="ecd-chip">
+            <span class="ecd-chip-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <span class="ecd-chip-val">
+              {% if metrics %}{{ metrics.junctions_crossed }}{% else %}—{% endif %}
+            </span>
+            <span class="ecd-chip-label">Junctions crossed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event timeline -->
+    <div class="ec-card" style="margin-top:16px;">
+      <div class="ec-card-header">
+        <h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Event Timeline</h2>
+        <span class="ec-pill ec-pill-idle">{{ events|length }} events</span>
+      </div>
+      <div class="ec-card-body" style="padding:0;">
+        <div class="ecd-timeline" id="ecd-timeline">
+          {% if events %}
+            {% for ev in events %}
+            <div class="ecd-tl-row">
+              <div class="ecd-tl-time">{{ ev.created_at.strftime('%H:%M:%S') }}</div>
+              <div class="ecd-tl-dot ecd-tl-dot-{{ ev.event_type|lower|replace('_','-') }}"></div>
+              <div class="ecd-tl-body">
+                <div class="ecd-tl-type">{{ ev.event_type.replace('_',' ') }}</div>
+                {% if ev.description %}
+                <div class="ecd-tl-desc">{{ ev.description }}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="color:#9CA3AF;font-size:0.85rem;text-align:center;padding:24px 0;">
+              No events recorded yet.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.ecd-right -->
+</div><!-- /.ecd-layout -->
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function(){
+  'use strict';
+
+  var IS_ACTIVE = {{ 'true' if corridor.status == 'ACTIVE' else 'false' }};
+  var CORRIDOR_ID = "{{ corridor_id }}";
+
+  var srcLat  = {{ corridor.source_lat or 21.123028 }};
+  var srcLon  = {{ corridor.source_lon or 79.051449 }};
+  var dstLat  = {{ corridor.destination_lat or 21.036856 }};
+  var dstLon  = {{ corridor.destination_lon or 79.027517 }};
+
+  // ── Map init ───────────────────────────────────────────────────
+  var mapEl = document.getElementById('ecd-map');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  var map = L.map('ecd-map', { zoomControl: true, scrollWheelZoom: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 18
+  }).addTo(map);
+
+  // Source marker (teal circle)
+  L.circleMarker([srcLat, srcLon], {
+    radius: 9, color: '#0EA5A0', fillColor: '#0EA5A0', fillOpacity: 1, weight: 2
+  }).addTo(map).bindPopup('<b>{{ corridor.source_name|e }}</b><br>Source');
+
+  // Destination marker (red circle)
+  L.circleMarker([dstLat, dstLon], {
+    radius: 9, color: '#EF4444', fillColor: '#EF4444', fillOpacity: 1, weight: 2
+  }).addTo(map).bindPopup('<b>{{ corridor.destination_name|e }}</b><br>Destination');
+
+  // ── Static ANPR detection markers (for non-active corridors) ──
+  {% if corridor.status != 'ACTIVE' %}
+  {% for det in anpr_detections %}{% if det.latitude and det.longitude %}
+  L.circleMarker([{{ det.latitude }}, {{ det.longitude }}], {
+    radius: 5, color: '#8B5CF6', fillColor: '#C4B5FD', fillOpacity: 0.9, weight: 2
+  }).addTo(map).bindPopup('ANPR: <b>{{ det.plate_number|e }}</b><br>{{ det.detected_at.strftime("%H:%M:%S") }}');
+  {% endif %}{% endfor %}
+
+  var bounds = [[srcLat, srcLon], [dstLat, dstLon]];
+  {% for det in anpr_detections %}{% if det.latitude and det.longitude %}
+  bounds.push([{{ det.latitude }}, {{ det.longitude }}]);
+  {% endif %}{% endfor %}
+  map.fitBounds(bounds, { padding: [40, 40] });
+  {% endif %}
+
+  // ── ACTIVE corridor: live polling mirrors driver screen ────────
+  if (IS_ACTIVE) {
+    var ambMarker    = null;
+    var routeLine    = null;
+    var juncMarkers  = {};
+    var vmsMarkers   = {};
+    var anprEmitted  = {};   // key → true
+    var anprCount    = 0;
+    var anprVideo    = document.getElementById('ecd-anpr-video');
+    var anprList     = document.getElementById('ecd-anpr-list');
+    var anprCountPill= document.getElementById('ecd-anpr-count');
+    var videoStarted = false;
+
+    // Ambulance marker
+    ambMarker = L.marker([srcLat, srcLon], {
+      icon: L.divIcon({
+        html: '<div style="background:#EF4444;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 3px #EF4444,0 2px 8px rgba(0,0,0,0.5);animation:amb-pulse 1s ease-in-out infinite;"></div>',
+        className: '', iconSize: [14, 14], iconAnchor: [7, 7]
+      }),
+      zIndexOffset: 1000
+    }).addTo(map);
+
+    // Inject ambulance pulse animation
+    var ambStyle = document.createElement('style');
+    ambStyle.textContent = '@keyframes amb-pulse{0%,100%{box-shadow:0 0 0 3px #EF4444,0 2px 8px rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0.2),0 2px 8px rgba(239,68,68,0.4)}}';
+    document.head.appendChild(ambStyle);
+
+    map.fitBounds([[srcLat, srcLon], [dstLat, dstLon]], { padding: [50, 50] });
+
+    // ── Icon factories (same as driver/admin) ──────────────────
+    function junctionIcon(status) {
+      var isActive = status === 'active';
+      var isPassed = status === 'passed';
+      var postColor = isPassed ? '#4ade80' : isActive ? '#22c55e' : '#6b7280';
+      var redLit    = isActive ? '#ff4444' : '#1a1a1a';
+      var greenLit  = isActive ? '#22ff66' : '#1a1a1a';
+      var glow      = isActive ? 'filter:drop-shadow(0 0 6px #22c55e);' : '';
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="40" viewBox="0 0 28 48" style="' + glow + '">' +
+        '<rect x="12" y="32" width="4" height="16" rx="1" fill="' + postColor + '"/>' +
+        '<rect x="4" y="2" width="20" height="30" rx="4" fill="#1c2333" stroke="' + postColor + '" stroke-width="1.5"/>' +
+        '<circle cx="14" cy="8" r="4.5" fill="' + redLit + '"/>' +
+        '<circle cx="14" cy="17" r="4.5" fill="#1a1a1a"/>' +
+        '<circle cx="14" cy="26" r="4.5" fill="' + greenLit + '"/>' +
+        '</svg>';
+      var sz = isActive ? [28, 50] : [22, 40];
+      return L.divIcon({ html: svg, className: '', iconSize: sz, iconAnchor: [sz[0]/2, sz[1]] });
+    }
+
+    function vmsIcon(message, status) {
+      var isEmergency = status === 'emergency_warning';
+      var borderColor = isEmergency ? '#ff9500' : '#2a4a7f';
+      var textColor   = isEmergency ? '#ff9500' : '#66bb6a';
+      var glow        = isEmergency ? 'filter:drop-shadow(0 0 8px rgba(255,149,0,0.8));' : '';
+      // Split on newline — wrap each line in its own div, no HTML escaping
+      var rawLines    = (message || 'DRIVE CAUTIOUSLY\nHAVE A GOOD DAY').split('\n');
+      var linesHtml   = rawLines.map(function(l){ return '<div>' + l.trim() + '</div>'; }).join('');
+      var boardWidth  = isEmergency ? 200 : 160;
+      var fontSize    = isEmergency ? '0.62rem' : '0.55rem';
+      var html = '<div style="background:#0a1628;border:2.5px solid ' + borderColor + ';border-radius:6px;' +
+        'padding:5px 8px;font-family:monospace;font-size:' + fontSize + ';font-weight:700;' +
+        'line-height:1.5;color:' + textColor + ';white-space:nowrap;min-width:' + boardWidth + 'px;' +
+        'box-shadow:0 3px 12px rgba(0,0,0,0.7);' + glow + '">' +
+        '<div style="font-size:0.38rem;color:' + borderColor + ';letter-spacing:0.1em;margin-bottom:3px;opacity:0.8;">VMS BOARD</div>' +
+        linesHtml +
+        (isEmergency ? '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:0.38rem;color:#ff9500;"><div style="width:5px;height:5px;border-radius:50%;background:#ff9500;"></div>ACTIVE</div>' : '') +
+        '</div>';
+      var iconW = boardWidth + 20;
+      return L.divIcon({ html: html, className: '', iconSize: [iconW, isEmergency ? 60 : 52], iconAnchor: [iconW / 2, isEmergency ? 60 : 52] });
+    }
+
+    // ── Polling ────────────────────────────────────────────────
     function drawRouteFromGeometry(geometry) {
       if (!Array.isArray(geometry) || geometry.length < 2) return false;
       var latLngs = geometry

@@ -13,25 +13,38 @@
   <div class="lv-junction-info">
     <span class="lv-selector-label">Select Junction</span>
     <div class="lv-junction-name-row">
-      <span class="lv-junction-name" id="lv-junction-name">Junction {{ selected_junction }}</span>
+      <span class="lv-junction-name" id="lv-junction-name">{{ selected_junction }}</span>
       <span class="lv-camera-label" id="lv-camera-label">Camera 01</span>
       <div class="lv-live-badge" id="lv-live-badge">
         <span class="live-dot"></span>
-        <span>LIVE</span>
+        <span>LIVE — DEMONSTRATION</span>
       </div>
     </div>
   </div>
 
-  <!-- Junction picker pills -->
-  <div class="lv-junction-pills" id="lv-junction-pills">
-    {% for letter in ['A', 'B', 'C', 'D'] %}
-    <button
-      class="lv-junction-pill{% if selected_junction == letter %} active{% endif %}"
-      data-junction="{{ letter }}"
-      id="pill-junction-{{ letter }}"
-      aria-label="Select Junction {{ letter }}"
-    >Junction {{ letter }}</button>
-    {% endfor %}
+  <!-- Junction dropdown (replaces static pills) -->
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="lv-select-wrap">
+      <select id="lv-junction-select" class="lv-junction-select" aria-label="Select junction">
+        {% for opt in junction_options %}
+        <option value="{{ opt.key }}"{% if opt.key == selected_junction %} selected{% endif %}>
+          {{ opt.label }}
+        </option>
+        {% endfor %}
+      </select>
+      <span class="lv-select-caret" aria-hidden="true">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="6 9 12 15 18 9"/></svg>
+      </span>
+    </div>
+
+    <!-- Auto-rotate toggle -->
+    <button class="lv-tool-btn lv-autorotate-btn" id="btn-autorotate" title="Auto-rotate feeds" aria-pressed="true">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      <span class="lv-tool-label">Auto</span>
+    </button>
   </div>
 
   <button class="lv-fullscreen-btn" id="lv-fullscreen-btn" title="Full Screen">
@@ -59,12 +72,16 @@
 
     <!-- Video / camera feed area -->
     <div class="lv-video-area" id="lv-video-area">
-      <img
+      <video
         id="lv-cam"
-        src="{{ url_for('static', filename='img/camera-placeholder.jpg') }}"
-        alt="Junction camera feed"
+        src="{{ url_for('static', filename='videos/part-1-result.mp4') }}"
         class="lv-cam-img"
-      />
+        autoplay
+        loop
+        muted
+        playsinline
+        style="width:100%;height:100%;object-fit:cover;display:block;"
+      ></video>
       <!-- PTZ overlay (hidden by default) -->
       <div class="lv-ptz-overlay" id="lv-ptz-overlay" aria-hidden="true">
         <div class="lv-ptz-pad">
@@ -152,21 +169,41 @@
 
     <div class="lv-stats-header">
       <span class="lv-stats-title">Traffic State</span>
-      <span class="lv-state-badge badge-high" id="lv-state-badge">
+      <span class="lv-state-badge badge-low" id="lv-state-badge">
         <span class="state-dot"></span>
-        <span id="lv-state-text">High</span>
+        <span id="lv-state-text">—</span>
       </span>
     </div>
 
     <div class="lv-stats-body">
+
+      <!-- Part indicator -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9CA3AF;">
+          FEED
+        </span>
+        <span id="lv-part-label" style="font-size:12px;font-weight:700;color:#0EA5A0;background:#CCFBF1;padding:2px 8px;border-radius:99px;">
+          Part 1 / 4
+        </span>
+      </div>
 
       <div class="lv-stat-row">
         <div class="lv-stat-icon pcu-icon">
           <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
         </div>
         <div class="lv-stat-info">
-          <span class="lv-stat-label">PCU</span>
-          <span class="lv-stat-value" id="lv-pcu">48</span>
+          <span class="lv-stat-label">PCU Demand</span>
+          <span class="lv-stat-value" id="lv-pcu">—</span>
+        </div>
+      </div>
+
+      <div class="lv-stat-row">
+        <div class="lv-stat-icon" style="color:#8B5CF6">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="lv-stat-info">
+          <span class="lv-stat-label">Unique Tracked</span>
+          <span class="lv-stat-value" id="lv-vcount">—</span>
         </div>
       </div>
 
@@ -175,18 +212,18 @@
           <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         </div>
         <div class="lv-stat-info">
-          <span class="lv-stat-label">Queue Length</span>
-          <span class="lv-stat-value" id="lv-queue">72 <span class="lv-stat-unit">m</span></span>
+          <span class="lv-stat-label">Est. Queue</span>
+          <span class="lv-stat-value" id="lv-queue">—</span>
         </div>
       </div>
 
-      <div class="lv-stat-row">
-        <div class="lv-stat-icon speed-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+      <!-- Vehicle type breakdown -->
+      <div style="border-top:1px solid #F3F4F6;margin-top:10px;padding-top:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9CA3AF;margin-bottom:10px;">
+          Vehicle Breakdown
         </div>
-        <div class="lv-stat-info">
-          <span class="lv-stat-label">Avg Speed</span>
-          <span class="lv-stat-value" id="lv-speed">18 <span class="lv-stat-unit">km/h</span></span>
+        <div id="lv-breakdown" style="display:flex;flex-direction:column;gap:7px;">
+          <!-- Filled by JS -->
         </div>
       </div>
 
@@ -206,6 +243,7 @@
 {% block extra_scripts %}
 <script>
   var LV_INITIAL_JUNCTION = "{{ selected_junction | e }}";
+  var LV_JUNCTION_KEYS = [{% for opt in junction_options %}"{{ opt.key | e }}"{% if not loop.last %},{% endif %}{% endfor %}];
 </script>
 <script src="{{ url_for('static', filename='js/live-video.js') }}"></script>
 {% endblock %}
