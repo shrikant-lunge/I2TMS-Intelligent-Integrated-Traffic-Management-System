@@ -278,3 +278,30 @@
   .dl-select { width: 100%; }
   .dl-pagination-footer { flex-direction: column; align-items: center; text-align: center; }
 }
+
+/* ── Direction badge ─────────────────────────────────────── */
+.dir-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 4px;
+}
+
+/* ── Traffic level pills ─────────────────────────────────── */
+.level-pill {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 1px 6px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+.level-pill.high   { background: #FEE2E2; color: #991B1B; }
+.level-pill.medium { background: #FEF3C7; color: #92400E; }
+.level-pill.low    { background: #D1FAE5; color: #065F46; }

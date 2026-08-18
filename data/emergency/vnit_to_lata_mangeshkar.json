@@ -29,37 +29,57 @@
       "lon": 79.0308466,
       "ambulance_approach": "east",
       "sequence": 2
-    },
-    {
-      "id": "J03",
-      "name": "Lata Mangeshkar Hospital Gate",
-      "lat": 21.1005474,
-      "lon": 79.0046420,
-      "ambulance_approach": "northeast",
-      "sequence": 3
     }
   ],
-  "vms": [
-    {
-      "id": "VMS01",
-      "name": "VMS — Rachana Ring Road Junction",
-      "lat": 21.1217312,
-      "lon": 79.0305674,
-      "sequence": 1
-    },
-    {
-      "id": "VMS02",
-      "name": "VMS — Bansi Nagar",
-      "lat": 21.1162844,
-      "lon": 79.0130395,
-      "sequence": 2
-    },
-    {
-      "id": "VMS03",
-      "name": "VMS — Lokmanya Nagar",
-      "lat": 21.1109829,
-      "lon": 79.0021400,
-      "sequence": 3
-    }
-  ]
+ "vms": [
+  {
+    "id": "VMS01",
+    "name": "VMS — Persistent Ltd.",
+    "lat": 21.121931,
+    "lon": 79.048184,
+    "sequence": 1
+  },
+  {
+    "id": "VMS02",
+    "name": "VMS — Subhash Nagar Metro Station",
+    "lat": 21.123197,
+    "lon": 79.042311,
+    "sequence": 2
+  },
+  {
+    "id": "VMS03",
+    "name": "VMS — Vasudeo Nagar",
+    "lat": 21.119509,
+    "lon":  79.021286,
+    "sequence": 3
+  },
+  {
+    "id": "VMS04",
+    "name": "VMS — Bansi Nagar",
+    "lat": 21.1162844,
+    "lon": 79.0130395,
+    "sequence": 4
+  },
+  {
+    "id": "VMS05",
+    "name": "VMS — Lokmanya Nagar",
+    "lat": 21.1109829,
+    "lon": 79.0021400,
+    "sequence": 5
+  },
+  {
+    "id": "VMS06",
+    "name": "VMS — Raisoni Gate",
+    "lat": 21.104411,
+    "lon": 79.003338,
+    "sequence": 6
+  },
+  {
+    "id": "VMS07",
+    "name": "VMS — Lata Mangeshkar Hospital Gate",
+    "lat": 21.1005474,
+    "lon": 79.0046420,
+    "sequence": 7
+  }
+]
 }

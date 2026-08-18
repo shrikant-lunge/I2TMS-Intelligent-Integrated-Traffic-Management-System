@@ -144,7 +144,7 @@
       })
       .finally(function () {
         generateBtn.removeAttribute('disabled');
-        generateBtn.textContent = '🔗 GENERATE REPORT';
+        generateBtn.textContent = 'GENERATE REPORT';
       });
     });
   }

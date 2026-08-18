@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver Login — I2TMS Emergency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --red: #E53E3E; --red-dark: #C53030; --red-glow: rgba(229,62,62,0.22); --bg: #0D1117; --bg-card: #161B22; --bg-input: #1C2330; --border: #30363D; --border-focus: #E53E3E; --text: #F0F6FC; --text-muted: #8B949E; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(229,62,62,0.03) 40px, rgba(229,62,62,0.03) 80px); pointer-events: none; z-index: 0; }
+    .drv-login-card { position: relative; z-index: 1; width: 100%; max-width: 420px; background: var(--bg-card); border: 1px solid var(--border); border-top: 3px solid var(--red); border-radius: 12px; padding: 40px 36px; box-shadow: 0 24px 48px rgba(0,0,0,0.5); }
+    .drv-icon-wrap { width: 64px; height: 64px; background: rgba(229,62,62,0.12); border: 1.5px solid rgba(229,62,62,0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .drv-icon-wrap svg { width: 30px; height: 30px; stroke: var(--red); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .drv-brand { text-align: center; margin-bottom: 28px; }
+    .drv-brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 6px; }
+    .drv-brand p { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
+    .drv-emergency-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(229,62,62,0.1); border: 1px solid rgba(229,62,62,0.25); color: var(--red); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+    .drv-emergency-badge .pulse-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+    .drv-divider { height: 1px; background: var(--border); margin-bottom: 28px; }
+    .error-banner { display: flex; align-items: center; gap: 8px; background: rgba(229,62,62,0.1); border: 1px solid rgba(229,62,62,0.3); border-radius: 7px; padding: 10px 14px; margin-bottom: 20px; font-size: 13px; color: #FC8181; }
+    .field-group { margin-bottom: 18px; }
+    .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px; }
+    .input-wrapper { position: relative; }
+    .field-input { width: 100%; padding: 11px 44px 11px 14px; background: var(--bg-input); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .field-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--red-glow); }
+    .field-input::placeholder { color: var(--text-muted); }
+    .input-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); display: flex; align-items: center; background: none; border: none; cursor: pointer; padding: 0; }
+    .drv-login-btn { width: 100%; padding: 13px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-size: 13.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; cursor: pointer; margin-top: 8px; transition: background 0.2s, transform 0.1s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .drv-login-btn:hover { background: var(--red-dark); box-shadow: 0 4px 14px rgba(229,62,62,0.35); }
+    .drv-login-btn:active { transform: scale(0.98); }
+    .drv-login-btn svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .drv-footer-note { margin-top: 20px; text-align: center; font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+    #eye-open-drv { display: block; } #eye-closed-drv { display: none; }
+    #eye-toggle-drv.showing #eye-open-drv { display: none; } #eye-toggle-drv.showing #eye-closed-drv { display: block; }
+    @media (max-width: 480px) { .drv-login-card { padding: 32px 24px; } }
+  </style>
+</head>
+<body>
+  <div class="drv-login-card" role="main">
+    <div class="drv-icon-wrap" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 17h18M3 17l2-7h14l2 7M3 17v2a1 1 0 001 1h1a1 1 0 001-1v-2M16 17v2a1 1 0 001 1h1a1 1 0 001-1v-2"/>
+        <path d="M9 10h1M12 7v6M15 10h-1"/>
+      </svg>
+    </div>
+    <div class="drv-brand">
+      <div class="drv-emergency-badge"><span class="pulse-dot"></span> Emergency System</div>
+      <h1>Driver Access</h1>
+      <p>I&#178;TMS &#8212; Emergency Ambulance Navigation<br/>Enter your credentials to access the driver portal</p>
+    </div>
+    <div class="drv-divider" aria-hidden="true"></div>
+    {% if error %}
+    <div class="error-banner" role="alert">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ error }}</span>
+    </div>
+    {% endif %}
+    <form method="POST" action="{{ url_for('auth.driver_login') }}" novalidate id="drv-login-form">
+      <div class="field-group">
+        <label for="mobile" class="field-label">Mobile Number</label>
+        <div class="input-wrapper">
+          <input type="tel" id="mobile" name="mobile" class="field-input"
+            placeholder="e.g. 9876543210" autocomplete="tel" inputmode="numeric"
+            maxlength="15" value="{{ request.form.get('mobile', '') }}" required />
+          <span class="input-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0116.92 2a2 2 0 012 2.18v3a2 2 0 01-1.44 1.93l-1.36.48a16 16 0 006.43 6.43l.48-1.36A2 2 0 0122 16.92z"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="password" class="field-label">Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="password" name="password" class="field-input"
+            placeholder="Enter your password" autocomplete="current-password" required />
+          <button type="button" class="input-icon" id="eye-toggle-drv" aria-label="Show password">
+            <svg id="eye-open-drv" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg id="eye-closed-drv" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="drv-login-btn">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Access Navigation Portal
+      </button>
+    </form>
+    <p class="drv-footer-note">This portal is restricted to authorised emergency drivers only.<br/>Contact your administrator if you need access.</p>
+  </div>
+  <script>
+    var eyeBtn = document.getElementById('eye-toggle-drv');
+    var pwdInput = document.getElementById('password');
+    if (eyeBtn && pwdInput) {
+      eyeBtn.addEventListener('click', function () {
+        var showing = this.classList.toggle('showing');
+        pwdInput.type = showing ? 'text' : 'password';
+        this.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+      });
+    }
+    var form = document.getElementById('drv-login-form');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        var mobile = document.getElementById('mobile').value.trim();
+        var pwd = document.getElementById('password').value;
+        if (!mobile || !pwd) { e.preventDefault(); alert('Please enter your mobile number and password.'); }
+      });
+    }
+  </script>
+</body>
+</html>

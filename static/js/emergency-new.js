@@ -99,7 +99,7 @@
   const prioritySelect = document.getElementById('priority');
   if (prioritySelect) {
     prioritySelect.addEventListener('change', (e) => {
-      const notes = { high: '● High — Urgent dispatch', medium: '● Medium — Standard priority', low: '● Low — Routine transport' };
+      const notes = { high: '• High — Urgent dispatch', medium: '• Medium — Standard priority', low: '• Low — Routine transport' };
       const noteEl = document.getElementById('priority-note');
       if (noteEl) noteEl.textContent = notes[e.target.value] || '';
     });
@@ -215,7 +215,7 @@
         console.error(err);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "🔗 FIND SHORTEST ROUTE";
+        submitBtn.textContent = "FIND SHORTEST ROUTE";
       }
     });
   }
@@ -338,8 +338,8 @@
     L.polyline(routeCoords, { color: '#1A2942', weight: 5, opacity: 0.8 }).addTo(leafletMap);
     
     // Markers
-    L.marker([data.current_lat, data.current_lng]).addTo(leafletMap).bindPopup('🚑 Starting Point').openPopup();
-    L.marker([data.destination_lat, data.destination_lng]).addTo(leafletMap).bindPopup('🏥 Destination');
+    L.marker([data.current_lat, data.current_lng]).addTo(leafletMap).bindPopup('Starting Point').openPopup();
+    L.marker([data.destination_lat, data.destination_lng]).addTo(leafletMap).bindPopup('Destination');
     
     leafletMap.fitBounds(routeCoords, { padding: [35, 35] });
   }

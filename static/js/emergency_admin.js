@@ -109,7 +109,7 @@
     L.tileLayer(OSM_TILES, { attribution: OSM_ATTR }).addTo(setupMap);
     // Source marker
     L.marker(VNIT)
-      .bindTooltip('📍 VNIT Nagpur (Source)', { permanent: true, direction: 'right', offset: [12, 0] })
+      .bindTooltip('VNIT Nagpur (Source)', { permanent: false, direction: 'right', offset: [12, 0] })
       .addTo(setupMap);
   }
 
@@ -119,7 +119,7 @@
     L.tileLayer(OSM_TILES, { attribution: OSM_ATTR }).addTo(monMap);
 
     monAmbMarker = L.marker(VNIT, {
-      icon: L.divIcon({ html: '<div class="lf-amb-icon">🚑</div>', className: '', iconSize: [36, 36], iconAnchor: [18, 18] }),
+      icon: L.divIcon({ html: '<div class="lf-amb-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/></svg></div>', className: '', iconSize: [36, 36], iconAnchor: [18, 18] }),
       zIndexOffset: 1000,
     }).addTo(monMap);
   }
@@ -132,7 +132,6 @@
     const glow      = isActive ? 'filter:drop-shadow(0 0 6px #22c55e);' : '';
     const redLit    = isActive ? '#ff4444' : '#1a1a1a';
     const greenLit  = isActive ? '#22ff66' : '#1a1a1a';
-    const label     = approach ? approach.toUpperCase()[0] : '';
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="42" viewBox="0 0 28 48"
       style="${glow}">
@@ -141,7 +140,6 @@
       <circle cx="14" cy="8"  r="4.5" fill="${redLit}"/>
       <circle cx="14" cy="17" r="4.5" fill="#1a1a1a"/>
       <circle cx="14" cy="26" r="4.5" fill="${greenLit}"/>
-      ${isActive ? `<text x="14" y="46" font-size="5" fill="#22ff66" text-anchor="middle" font-family="monospace">${label}→GRN</text>` : ''}
     </svg>`;
     const size = isActive ? [28, 50] : [22, 40];
     return L.divIcon({ html: svg, className: '', iconSize: size, iconAnchor: [size[0]/2, size[1]] });
@@ -152,21 +150,31 @@
     const isPassed    = status === 'passed';
     const borderColor = isEmergency ? '#ff9500' : isPassed ? '#334155' : '#2a4a7f';
     const textColor   = isEmergency ? '#ff9500' : isPassed ? '#4b5563' : '#66bb6a';
-    const glowStyle   = isEmergency ? 'filter:drop-shadow(0 0 5px rgba(255,149,0,0.7));' : '';
-    const lines = (message || '').replace(/\n/g, '<br>');
-    const html = `<div style="background:#0a1628;border:2px solid ${borderColor};border-radius:5px;
-      padding:4px 6px;font-family:'Courier New',monospace;font-size:0.5rem;font-weight:700;
-      line-height:1.4;color:${textColor};white-space:nowrap;min-width:80px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.5);${glowStyle}">
-      <div style="font-size:0.38rem;color:${borderColor};letter-spacing:0.1em;margin-bottom:1px;">▲ VMS</div>
-      <div>${lines}</div>
+    const glowStyle   = isEmergency ? 'filter:drop-shadow(0 0 8px rgba(255,149,0,0.8));' : '';
+
+    // Split on newline — never escape; wrap each line in its own div
+    const rawLines  = (message || 'DRIVE CAUTIOUSLY\nHAVE A GOOD DAY').split('\n');
+    const linesHtml = rawLines.map(l => `<div>${l.trim()}</div>`).join('');
+
+    const boardWidth = isEmergency ? 200 : 160;
+    const fontSize   = isEmergency ? '0.62rem' : '0.55rem';
+
+    const html = `<div style="background:#0a1628;border:2.5px solid ${borderColor};border-radius:6px;
+      padding:5px 8px;font-family:'Courier New',monospace;font-size:${fontSize};font-weight:700;
+      line-height:1.5;color:${textColor};white-space:nowrap;min-width:${boardWidth}px;
+      box-shadow:0 3px 12px rgba(0,0,0,0.7);${glowStyle}">
+      <div style="font-size:0.38rem;color:${borderColor};letter-spacing:0.1em;margin-bottom:3px;opacity:0.8;">VMS BOARD</div>
+      ${linesHtml}
+      ${isEmergency ? `<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:0.38rem;color:#ff9500;"><div style="width:5px;height:5px;border-radius:50%;background:#ff9500;"></div>ACTIVE</div>` : ''}
     </div>`;
-    return L.divIcon({ html, className: '', iconSize: [88, 48], iconAnchor: [44, 48] });
+
+    const iconW = boardWidth + 20;
+    return L.divIcon({ html, className: '', iconSize: [iconW, isEmergency ? 60 : 52], iconAnchor: [iconW / 2, isEmergency ? 60 : 52] });
   }
 
   function destIcon(name) {
     return L.divIcon({
-      html: `<div style="background:#EF4444;color:#fff;border:2px solid #fff;border-radius:6px;padding:4px 8px;font-size:0.65rem;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">🏥 ${name}</div>`,
+      html: `<div style="background:#EF4444;color:#fff;border:2px solid #fff;border-radius:6px;padding:4px 8px;font-size:0.65rem;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">${name}</div>`,
       className: '', iconAnchor: [0, 0],
     });
   }
@@ -334,11 +342,11 @@
     if (paused) {
       await fetch('/api/emergency/resume', { method: 'POST' });
       paused = false;
-      btnPause.innerHTML = '⏸ Pause';
+      btnPause.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause';
     } else {
       await fetch('/api/emergency/pause', { method: 'POST' });
       paused = true;
-      btnPause.innerHTML = '▶ Resume';
+      btnPause.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Resume';
       if (anprStarted && !anprVideo.paused) {
         anprVideo.pause();
       }
@@ -388,7 +396,7 @@
     // Switch back to setup
     show(setupPanel);
     hide(monitorPanel);
-    btnPause.innerHTML = '⏸ Pause';
+    btnPause.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause';
     progressBar.style.width = '0%';
     progressLabel.textContent = '0%';
     setSignalNormal();
@@ -538,9 +546,7 @@
         monJuncMarkers[j.id] = L.marker([j.lat, j.lon], {
           icon: junctionIcon(j.status, j.ambulance_approach),
           zIndexOffset: 200,
-        })
-          .bindTooltip(`<b>${j.name}</b><br>Seq ${j.sequence}`, { permanent: false, direction: 'top', offset: [0, -10] })
-          .addTo(monMap);
+        }).addTo(monMap);
       } else {
         monJuncMarkers[j.id].setIcon(junctionIcon(j.status, j.ambulance_approach));
       }
@@ -552,9 +558,7 @@
         monVmsMarkers[v.id] = L.marker([v.lat, v.lon], {
           icon: vmsIcon(v.message, v.status),
           zIndexOffset: 100,
-        })
-          .bindTooltip(`<b>${v.name}</b>`, { permanent: false, direction: 'top', offset: [0, -10] })
-          .addTo(monMap);
+        }).addTo(monMap);
       } else {
         monVmsMarkers[v.id].setIcon(vmsIcon(v.message, v.status));
       }
@@ -579,7 +583,7 @@
   /* ── Signal helpers ───────────────────────────────────────────── */
   function setSignalGreen(juncName) {
     signalIndicator.className = 'ec-signal-indicator green';
-    signalText.textContent = `🚦 EMERGENCY PRIORITY — GREEN${juncName ? ' @ ' + juncName : ''}`;
+    signalText.textContent = `EMERGENCY PRIORITY — GREEN${juncName ? ' @ ' + juncName : ''}`;
   }
   function setSignalNormal() {
     signalIndicator.className = 'ec-signal-indicator normal';

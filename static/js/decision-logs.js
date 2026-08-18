@@ -109,44 +109,66 @@
     }
 
     tbody.innerHTML = rows.map(function (r) {
-      var isOverride  = r.decision_type === 'manual_override';
-      var isEmergency = r.decision_type === 'emergency';
-      
+      var moduleVal   = (r.decision_type || 'adaptive_signal').toLowerCase();
+      var isOverride  = moduleVal === 'manual_override';
+      var isEmergency = moduleVal === 'emergency_corridor' || moduleVal === 'emergency';
+
       var rowClass    = '';
       if (isOverride)  rowClass = ' class="dl-row-override"';
       else if (isEmergency) rowClass = ' class="dl-row-emergency"';
-      
-      var decText     = 'Adaptive';
-      var decBadge    = 'adaptive';
-      if (isOverride) {
-        decText  = 'Manual Override';
-        decBadge = 'manual_override';
-      } else if (isEmergency) {
-        decText  = 'Emergency';
-        decBadge = 'emergency';
-      }
 
-      var appLower = r.applied_by.toLowerCase();
-      var appClass = 'system';
-      var appText  = 'System';
-      if (appLower === 'operator') {
-        appClass = 'operator';
-        appText  = 'Operator';
-      } else if (appLower === 'emergency') {
-        appClass = 'emergency';
-        appText  = 'Emergency';
-      }
+      var decText  = r.decision || 'Adaptive';
+      var decBadge = isOverride ? 'manual_override' : isEmergency ? 'emergency' : 'adaptive';
+
+      var appliedBy  = r.applied_by || 'System';
+      var appLower   = appliedBy.toLowerCase();
+      var appClass   = appLower === 'operator' ? 'operator' : appLower === 'emergency' ? 'emergency' : 'system';
+
+      // Direction badge
+      var dirHtml = r.direction && r.direction !== '—'
+        ? '<span class="dir-badge">' + esc(r.direction.toUpperCase()) + '</span> '
+        : '';
+
+      // Traffic / congestion pills
+      var tLevel  = (r.traffic_level  || '').toUpperCase();
+      var cLevel  = (r.congestion_level || '').toUpperCase();
+      var tClass  = tLevel === 'HIGH' ? 'high' : tLevel === 'MEDIUM' ? 'medium' : 'low';
+      var levelHtml = tLevel
+        ? '<span class="level-pill ' + tClass + '">' + esc(tLevel) + '</span>'
+        : '';
+
+      // Green time
+      var greenHtml = r.green_time && r.green_time !== '—'
+        ? '<span style="color:#10B981;font-weight:600">' + esc(r.green_time) + 's</span>'
+        : '';
+
+      // PCU
+      var pcuHtml = r.pcu && r.pcu !== '—'
+        ? '<span style="color:#6B7280;font-size:11px">PCU ' + esc(r.pcu) + '</span>'
+        : '';
+
+      var planHtml = r.recommended_plan
+        ? '<span class="plan-summary">' + esc(r.recommended_plan) + '</span>'
+        : '—';
 
       return (
         '<tr' + rowClass + '>' +
           '<td style="font-weight:500;color:#111827">' + esc(r.time) + '</td>' +
-          '<td style="font-weight:600;color:#4B5563">' + esc(r.junction) + '</td>' +
+          '<td>' +
+            '<div style="font-weight:600;color:#4B5563">' + esc(r.junction) + '</div>' +
+            '<div style="font-size:11px;color:#9CA3AF;margin-top:2px">' + dirHtml + levelHtml + '</div>' +
+          '</td>' +
           '<td>' +
             '<span class="badge-decision ' + decBadge + '">' + esc(decText) + '</span>' +
           '</td>' +
-          '<td><span class="plan-summary">' + esc(r.recommended_plan) + '</span></td>' +
           '<td>' +
-            '<span class="applied-badge ' + appClass + '">' + esc(appText) + '</span>' +
+            planHtml +
+            '<div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">' +
+              greenHtml + pcuHtml +
+            '</div>' +
+          '</td>' +
+          '<td>' +
+            '<span class="applied-badge ' + appClass + '">' + esc(appliedBy) + '</span>' +
           '</td>' +
         '</tr>'
       );

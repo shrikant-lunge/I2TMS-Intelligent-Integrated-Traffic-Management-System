@@ -631,6 +631,17 @@ class AdaptiveSignalPipeline:
         vehicle_count_by_class = dict(traffic_state["vehicle_count_by_class"])
         vehicle_count_total = int(traffic_state["vehicle_count"])
 
+        # ── Persist analytics to database ────────────────────────────────────
+        try:
+            self._persist_signal_decision(
+                junction_name, direction, source_kind,
+                vehicle_count_total, vehicle_count_by_class,
+                traffic_state, pcu, congestion, webster,
+            )
+        except Exception as _persist_exc:
+            logger.warning("Failed to persist signal decision: %s", _persist_exc)
+        # ─────────────────────────────────────────────────────────────────────
+
         return {
             "junction": junction_name,
             "direction": direction,
@@ -666,6 +677,168 @@ class AdaptiveSignalPipeline:
             },
             "webster": webster,
         }
+
+    # ------------------------------------------------------------------
+    # Persistence helpers (new)
+    # ------------------------------------------------------------------
+    def _persist_signal_decision(
+        self,
+        junction_name: str,
+        direction: str,
+        source_kind: str,
+        vehicle_count_total: int,
+        vehicle_count_by_class: Dict[str, int],
+        traffic_state: Dict[str, object],
+        pcu: Dict[str, object],
+        congestion: Dict[str, object],
+        webster: Dict[str, object],
+    ) -> None:
+        """
+        Write TrafficStateSnapshot, SignalDecision, DecisionLog, and
+        TrafficTrend rows for this pipeline result.
+
+        All writes are flushed inside the existing SQLAlchemy session so
+        they commit with the caller's session lifecycle.
+        """
+        from app.models.traffic_state_snapshot import TrafficStateSnapshot
+        from app.models.signal_decision import SignalDecision
+        from app.models.decision_log import DecisionLog
+        from app.models.traffic_trend import TrafficTrend
+
+        now = datetime.utcnow()
+
+        # Look up the Junction row for the FK (nullable — don't fail if absent)
+        j_obj = Junction.query.filter_by(name=junction_name).first()
+        j_id  = j_obj.id if j_obj else None
+
+        # 1. TrafficStateSnapshot ────────────────────────────────────────────
+        snap = TrafficStateSnapshot(
+            junction_id      = j_id,
+            junction_name    = junction_name,
+            direction        = direction,
+            vehicle_count    = vehicle_count_total,
+            car_count        = vehicle_count_by_class.get("car", 0),
+            bus_count        = vehicle_count_by_class.get("bus", 0),
+            truck_count      = vehicle_count_by_class.get("truck", 0),
+            bike_count       = vehicle_count_by_class.get("bike", 0),
+            auto_count       = vehicle_count_by_class.get("auto", 0),
+            queue_length     = int(traffic_state["queue_length"]),
+            density          = float(traffic_state["density"]),
+            speed            = float(traffic_state["average_speed"]),
+            occupancy        = float(traffic_state["occupancy"]),
+            waiting_time     = float(traffic_state["waiting_time"]),
+            traffic_level    = str(traffic_state["traffic_level"]),
+            pcu_demand       = float(pcu["pcu_demand"]),
+            congestion_level = str(congestion["level"]),
+            source_kind      = source_kind,
+            captured_at      = now,
+        )
+        db.session.add(snap)
+
+        # 2. SignalDecision ───────────────────────────────────────────────────
+        green_time = float(webster.get("green_time_sec", 0.0))
+        cong_level = str(congestion["level"])
+        traffic_level = str(traffic_state["traffic_level"])
+
+        # Classify the decision type from change in green time
+        prev_state = AdaptiveSignalState.query.filter_by(
+            junction_name=junction_name, direction=direction
+        ).first()
+        prev_green  = float(prev_state.green_time_sec) if prev_state and prev_state.green_time_sec else None
+        if prev_green is None:
+            decision_type = "adaptive"
+            reason = f"Initial adaptive calculation — {traffic_level} traffic, {cong_level} congestion"
+        elif green_time > prev_green + 2:
+            decision_type = "extend_green"
+            reason = f"Extend GREEN {prev_green:.0f}s→{green_time:.0f}s (PCU={pcu['pcu_demand']:.1f}, {cong_level})"
+        elif green_time < prev_green - 2:
+            decision_type = "reduce_green"
+            reason = f"Reduce GREEN {prev_green:.0f}s→{green_time:.0f}s (PCU={pcu['pcu_demand']:.1f}, {cong_level})"
+        else:
+            decision_type = "adaptive"
+            reason = f"Hold GREEN {green_time:.0f}s (PCU={pcu['pcu_demand']:.1f}, {cong_level})"
+
+        sig_dec = SignalDecision(
+            junction_id            = j_id,
+            junction_name          = junction_name,
+            direction              = direction,
+            vehicle_count          = vehicle_count_total,
+            pcu                    = float(pcu["pcu_demand"]),
+            density                = float(traffic_state["density"]),
+            congestion_level       = cong_level,
+            traffic_level          = traffic_level,
+            recommended_green_time = green_time,
+            previous_green_time    = prev_green,
+            cycle_length_sec       = float(webster.get("cycle_length_sec", 0.0)),
+            decision_type          = decision_type,
+            reason                 = reason,
+            source_kind            = source_kind,
+            created_at             = now,
+        )
+        db.session.add(sig_dec)
+        db.session.flush()  # get sig_dec.id
+
+        # 3. DecisionLog ─────────────────────────────────────────────────────
+        log_entry = DecisionLog(
+            module             = "adaptive_signal",
+            junction_id        = j_id,
+            junction_name      = junction_name,
+            direction          = direction.upper(),
+            decision           = decision_type.replace("_", " ").upper(),
+            reason             = reason,
+            traffic_level      = traffic_level,
+            congestion_level   = cong_level,
+            pcu                = float(pcu["pcu_demand"]),
+            density            = float(traffic_state["density"]),
+            green_time         = green_time,
+            signal_decision_id = sig_dec.id,
+            metadata_          = {
+                "vehicle_count_by_class": vehicle_count_by_class,
+                "queue_length":           int(traffic_state["queue_length"]),
+                "occupancy":              float(traffic_state["occupancy"]),
+                "waiting_time":           float(traffic_state["waiting_time"]),
+                "signal_plan":            webster.get("signal_plan", []),
+                "cycle_length_sec":       float(webster.get("cycle_length_sec", 0.0)),
+                "source_kind":            source_kind,
+            },
+            created_at         = now,
+        )
+        db.session.add(log_entry)
+
+        # 4. TrafficTrend (5-minute buckets) ─────────────────────────────────
+        # Round now down to the nearest 5-minute boundary
+        bucket_minute = (now.minute // 5) * 5
+        bucket = now.replace(minute=bucket_minute, second=0, microsecond=0)
+
+        # Upsert: update existing bucket row or insert a new one
+        trend_row = TrafficTrend.query.filter_by(
+            junction_id=j_id,
+            time_bucket=bucket,
+        ).first()
+        if trend_row is None:
+            trend_row = TrafficTrend(
+                junction_id      = j_id,
+                junction_name    = junction_name,
+                time_bucket      = bucket,
+                vehicle_count    = vehicle_count_total,
+                pcu              = float(pcu["pcu_demand"]),
+                congestion_level = cong_level,
+                average_speed    = float(traffic_state["average_speed"]),
+                traffic_level    = traffic_level,
+                created_at       = now,
+            )
+            db.session.add(trend_row)
+        else:
+            # Accumulate within the bucket window
+            trend_row.vehicle_count    = max(trend_row.vehicle_count, vehicle_count_total)
+            trend_row.pcu              = max(trend_row.pcu, float(pcu["pcu_demand"]))
+            # Prefer the worse congestion level
+            _level_order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+            if _level_order.get(cong_level, 0) >= _level_order.get(trend_row.congestion_level, 0):
+                trend_row.congestion_level = cong_level
+                trend_row.traffic_level    = traffic_level
+
+        db.session.flush()
 
     def process_image(self, image_bytes: bytes, junction_name: str, direction: str) -> Dict[str, object]:
         image_array = np.frombuffer(image_bytes, dtype=np.uint8)

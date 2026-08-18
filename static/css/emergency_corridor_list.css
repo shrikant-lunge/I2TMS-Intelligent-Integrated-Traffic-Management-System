@@ -1,0 +1,190 @@
+/* ============================================================
+   Emergency Corridor List  — /emergency-corridor
+   ============================================================ */
+
+/* ── Page header override ────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title  { font-size: 20px; font-weight: 700; color: #1A2942; line-height: 1.2; }
+.page-subtitle { font-size: 12.5px; color: #6B7280; margin-top: 3px; }
+
+/* ── Filter row ──────────────────────────────────────────── */
+.ecl-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ecl-tabs {
+  display: flex;
+  gap: 4px;
+  background: #F3F4F6;
+  border-radius: 10px;
+  padding: 4px;
+}
+.ecl-tab {
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6B7280;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ecl-tab:hover { color: #111827; background: rgba(0,0,0,0.05); }
+.ecl-tab.active { background: #fff; color: #111827; box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+
+.ecl-tab-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ecl-tab-dot.active    { background: #EF4444; }
+.ecl-tab-dot.completed { background: #3B82F6; }
+.ecl-tab-dot.closed    { background: #9CA3AF; }
+
+.ecl-sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #6B7280;
+}
+.ecl-sort-label { font-weight: 600; }
+.ecl-sort-wrap select {
+  appearance: none;
+  border: 1px solid #E5E7EB;
+  border-radius: 7px;
+  padding: 6px 30px 6px 10px;
+  font-size: 0.82rem;
+  color: #111827;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+  cursor: pointer;
+}
+.ecl-sort-wrap select:focus { outline: none; border-color: #0EA5A0; }
+
+/* ── Table card ──────────────────────────────────────────── */
+.ecl-table-card {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.ecl-table-card .table-wrap { overflow-x: auto; }
+
+.ecl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.ecl-table thead th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6B7280;
+  background: #FAFAFA;
+  border-bottom: 1px solid #E5E7EB;
+  white-space: nowrap;
+}
+.ecl-table tbody tr {
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 0.1s;
+}
+.ecl-table tbody tr:last-child { border-bottom: none; }
+.ecl-table tbody tr:hover { background: #F9FAFB; }
+.ecl-table tbody td {
+  padding: 14px 16px;
+  color: #374151;
+  vertical-align: middle;
+}
+
+/* ── Status badges (shared, also used on dashboard) ─────── */
+.corridor-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.corridor-badge-active    { background: #D1FAE5; color: #065F46; }
+.corridor-badge-completed { background: #DBEAFE; color: #1E40AF; }
+.corridor-badge-closed    { background: #F3F4F6; color: #6B7280; }
+
+/* ── View button ─────────────────────────────────────────── */
+.ecl-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: #F3F4F6;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1A2942;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.ecl-detail-btn:hover { background: #0EA5A0; color: #fff; }
+
+/* ── Pagination (reuse decision-logs pattern) ────────────── */
+.dl-pagination-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid #F3F4F6;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dl-pagination-info { font-size: 12px; color: #6B7280; }
+.dl-pagination-controls { display: flex; gap: 4px; flex-wrap: wrap; }
+.dl-page-btn {
+  min-width: 32px; height: 32px;
+  padding: 0 8px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dl-page-btn:hover:not(.disabled):not(.active) { background: #F3F4F6; }
+.dl-page-btn.active  { background: #0EA5A0; color: #fff; border-color: #0EA5A0; font-weight: 700; }
+.dl-page-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── skeleton ───────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

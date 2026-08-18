@@ -3,10 +3,10 @@
  * Ambulance Driver Navigation Screen — VNIT → Hospital
  *
  * Map markers:
- *   🚦 Junction = traffic-signal icon, changes R/R/G/R when ambulance approaches
- *   📶 VMS      = actual board panel on the map, message flips live
- *   🚑 Ambulance = pulsing red icon that moves along the route
- *   🏥 Destination = hospital pin
+ *   Junction = traffic-signal icon, changes R/R/G/R when ambulance approaches
+ *   VMS      = actual board panel on the map, message flips live
+ *   Ambulance = pulsing red icon that moves along the route
+ *   Destination = hospital pin
  */
 (function () {
   'use strict';
@@ -80,7 +80,7 @@
   /* ── Ambulance icon ─────────────────────────────────────────────── */
   function makeAmbIcon() {
     return L.divIcon({
-      html: `<div class="lf-amb-icon">🚑</div>`,
+      html: `<div class="lf-amb-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/></svg></div>`,
       className: '',
       iconSize: [36, 36],
       iconAnchor: [18, 18],
@@ -140,51 +140,55 @@
     const isEmergency = status === 'emergency_warning';
     const isPassed    = status === 'passed';
 
-    const boardBg      = '#0a1628';
-    const borderColor  = isEmergency ? '#ff9500' : isPassed ? '#334155' : '#2a4a7f';
-    const textColor    = isEmergency ? '#ff9500' : isPassed ? '#4b5563' : '#66bb6a';
-    const glowStyle    = isEmergency ? 'filter:drop-shadow(0 0 5px rgba(255,149,0,0.7));' : '';
+    const boardBg     = '#0a1628';
+    const borderColor = isEmergency ? '#ff9500' : isPassed ? '#334155' : '#2a4a7f';
+    const textColor   = isEmergency ? '#ff9500' : isPassed ? '#4b5563' : '#66bb6a';
+    const glowStyle   = isEmergency ? 'filter:drop-shadow(0 0 8px rgba(255,149,0,0.8));' : '';
 
-    // Sanitise message for HTML
-    const lines = (message || '')
-      .replace(/\n/g, '<br>')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    // Split lines safely — no HTML escaping, just split on \n
+    const rawLines = (message || 'DRIVE CAUTIOUSLY\nHAVE A GOOD DAY').split('\n');
+    const linesHtml = rawLines
+      .map(l => `<div>${l.trim()}</div>`)
+      .join('');
 
-    const html = `
-<div style="
-  background:${boardBg};
-  border:2px solid ${borderColor};
-  border-radius:5px;
-  padding:5px 7px;
-  font-family:'Courier New',monospace;
-  font-size:0.55rem;
-  font-weight:700;
-  line-height:1.4;
-  color:${textColor};
-  white-space:nowrap;
-  min-width:90px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.6);
-  ${glowStyle}
-  position:relative;
-">
-  <div style="font-size:0.4rem;color:${borderColor};letter-spacing:0.1em;margin-bottom:2px;">▲ VMS BOARD</div>
-  <div>${lines}</div>
-  ${isEmergency ? '<div style="font-size:0.4rem;color:#ff9500;margin-top:2px;animation:drv-blink 0.8s step-start infinite;">● ACTIVE</div>' : ''}
-</div>`;
+    // Wider board for emergency message, normal for default
+    const boardWidth  = isEmergency ? 200 : 160;
+    const fontSize    = isEmergency ? '0.62rem' : '0.55rem';
+    const labelColor  = isEmergency ? '#ff9500' : borderColor;
 
+    const html = `<div style="
+      background:${boardBg};
+      border:2.5px solid ${borderColor};
+      border-radius:6px;
+      padding:5px 8px;
+      font-family:'Courier New',monospace;
+      font-size:${fontSize};
+      font-weight:700;
+      line-height:1.5;
+      color:${textColor};
+      white-space:nowrap;
+      min-width:${boardWidth}px;
+      box-shadow:0 3px 12px rgba(0,0,0,0.7);
+      ${glowStyle}
+    ">
+      <div style="font-size:0.38rem;color:${labelColor};letter-spacing:0.12em;margin-bottom:3px;opacity:0.8;">VMS BOARD</div>
+      ${linesHtml}
+      ${isEmergency ? `<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:0.38rem;color:#ff9500;"><div style="width:5px;height:5px;border-radius:50%;background:#ff9500;animation:drv-blink 0.8s step-start infinite;"></div>ACTIVE</div>` : ''}
+    </div>`;
+
+    const iconW = boardWidth + 20;
     return L.divIcon({
       html,
       className: '',
-      iconSize: [96, 50],
-      iconAnchor: [48, 50],
+      iconSize: [iconW, isEmergency ? 60 : 52],
+      iconAnchor: [iconW / 2, isEmergency ? 60 : 52],
     });
   }
 
   /* ── Destination pin ─────────────────────────────────────────────── */
   function makeDestIcon(name) {
     return L.divIcon({
-      html: `<div style="background:#EF4444;color:#fff;border:2px solid #fff;border-radius:6px;padding:5px 9px;font-size:0.65rem;font-weight:700;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.5);">🏥 ${name}</div>`,
+      html: `<div style="background:#EF4444;color:#fff;border:2px solid #fff;border-radius:6px;padding:5px 9px;font-size:0.65rem;font-weight:700;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.5);">${name}</div>`,
       className: '',
       iconAnchor: [0, 0],
     });
@@ -300,32 +304,24 @@
       }).addTo(map);
     }
 
-    // Junction markers — traffic signal icons
+    // Junction markers — traffic signal icons, no tooltip
     (data.junctions || []).forEach(j => {
       if (!j.lat || j.lat === 0) return;
       const m = L.marker([j.lat, j.lon], {
         icon: makeSignalIcon('pending', j.ambulance_approach || ''),
         zIndexOffset: 200,
-      })
-        .bindTooltip(`<b>${j.name}</b><br>Seq ${j.sequence}`, {
-          permanent: false, direction: 'top', offset: [0, -10],
-        })
-        .addTo(map);
+      }).addTo(map);
       junctionMarkers[j.id] = m;
     });
 
-    // VMS markers — board panels
+    // VMS markers — board panels, no tooltip
     (data.vms || []).forEach(v => {
       if (!v.lat || v.lat === 0) return;
       const msg = 'DRIVE CAUTIOUSLY\nHAVE A GOOD DAY';
       const m = L.marker([v.lat, v.lon], {
         icon: makeVmsIcon(msg, 'normal'),
         zIndexOffset: 100,
-      })
-        .bindTooltip(`<b>${v.name}</b>`, {
-          permanent: false, direction: 'top', offset: [0, -10],
-        })
-        .addTo(map);
+      }).addTo(map);
       vmsMarkers[v.id] = m;
     });
 
@@ -387,11 +383,11 @@
     if (paused) {
       await fetch('/api/emergency/resume', { method: 'POST' });
       paused = false;
-      btnPause.textContent = '⏸ PAUSE';
+      btnPause.textContent = 'PAUSE';
     } else {
       await fetch('/api/emergency/pause', { method: 'POST' });
       paused = true;
-      btnPause.textContent = '▶ RESUME';
+      btnPause.textContent = 'RESUME';
     }
   }
 
@@ -416,7 +412,7 @@
     hide(completionCard);
     hide(navBanner);
 
-    btnPause.textContent = '⏸ PAUSE';
+    btnPause.textContent = 'PAUSE';
     btnCalculate.disabled = false;
     destSelect.value = '';
     speedVal.textContent = '0';
@@ -524,7 +520,7 @@
 
   function setSignalGreen(juncName) {
     signalDisplay.className = 'drv-signal-display green-priority';
-    signalText.textContent  = `🚦 EMERGENCY PRIORITY — GREEN CORRIDOR${juncName ? ' @ ' + juncName : ''}`;
+    signalText.textContent  = `EMERGENCY PRIORITY — GREEN CORRIDOR${juncName ? ' @ ' + juncName : ''}`;
   }
   function setSignalNormal() {
     signalDisplay.className = 'drv-signal-display normal';

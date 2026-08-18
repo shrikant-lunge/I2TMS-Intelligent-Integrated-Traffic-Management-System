@@ -17,7 +17,7 @@
 
   <!-- Header -->
   <div class="page-header-icon">
-    <div class="icon-badge icon-badge-red">🚨</div>
+    <div class="icon-badge icon-badge-red"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
     <div>
       <h1>New Emergency Request</h1>
       <p class="page-sub">Dispatch an ambulance or fire truck with automatic signal preemption along the shortest route.</p>
@@ -28,13 +28,13 @@
   <div id="request-form-state">
     <div class="two-col">
       <section class="panel">
-        <div class="panel-header"><span class="icon-badge icon-badge-blue">🚚</span><h2>Vehicle & Route</h2></div>
+        <div class="panel-header"><span class="icon-badge icon-badge-blue"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><line x1="5.5" y1="16" x2="5.5" y2="20"/><line x1="9.5" y1="16" x2="9.5" y2="20"/><path d="M7 6v4M5 8h4"/></svg></span><h2>Vehicle & Route</h2></div>
 
         <div class="field">
           <label for="vehicle-type">Vehicle Type</label>
           <select id="vehicle-type">
-            <option value="ambulance">&nbsp;🚑 Ambulance</option>
-            <option value="fire_truck">&nbsp;🚒 Fire Truck</option>
+            <option value="ambulance">&nbsp; Ambulance</option>
+            <option value="fire_truck">&nbsp; Fire Truck</option>
           </select>
         </div>
 
@@ -48,7 +48,7 @@
           <label for="current-location">Current Location</label>
           <div class="input-with-icon">
             <input type="text" id="current-location" placeholder="e.g. VNIT Campus, Nagpur" autocomplete="off">
-            <button type="button" id="gps-btn" title="Use my current location">📍</button>
+            <button type="button" id="gps-btn" title="Use my current location"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
           </div>
           <div class="autocomplete-dropdown" id="current-location-dropdown" hidden></div>
           <span class="field-error" hidden>Please enter a current location.</span>
@@ -58,7 +58,7 @@
           <label for="destination">Destination</label>
           <div class="input-with-icon">
             <input type="text" id="destination" placeholder="e.g. Mayo Hospital, Nagpur" autocomplete="off">
-            <span class="static-icon">📍</span>
+            <span class="static-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
           </div>
           <div class="autocomplete-dropdown" id="destination-dropdown" hidden></div>
           <span class="field-error" hidden>Please enter a destination.</span>
@@ -66,11 +66,11 @@
 
         <div class="banner-error" id="form-banner" hidden></div>
 
-        <button type="button" class="btn-primary btn-full" id="submit-btn">🔗 FIND SHORTEST ROUTE</button>
+        <button type="button" class="btn-primary btn-full" id="submit-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> FIND SHORTEST ROUTE</button>
       </section>
 
       <section class="panel">
-        <div class="panel-header"><span class="icon-badge icon-badge-amber">⚡</span><h2>Request Details</h2></div>
+        <div class="panel-header"><span class="icon-badge icon-badge-amber"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><h2>Request Details</h2></div>
         <div class="field">
           <label for="priority">Priority</label>
           <select id="priority">
@@ -79,15 +79,18 @@
             <option value="low">Low</option>
           </select>
         </div>
-        <div class="priority-note" id="priority-note">● High — Urgent dispatch</div>
+        <div class="priority-note" id="priority-note">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-right:6px;vertical-align:middle;flex-shrink:0;"></span>
+          High — Urgent dispatch
+        </div>
 
         <div class="field">
           <label>Request Time</label>
-          <div class="readonly-field">🕐 <span id="request-time">{{ now.strftime('%d %b %Y | %I:%M %p') }}</span></div>
+          <div class="readonly-field"><span style="vertical-align:middle;margin-right:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <span id="request-time">{{ now.strftime('%d %b %Y | %I:%M %p') }}</span></div>
         </div>
 
         <div class="info-banner">
-          ℹ️ The system will preempt traffic signals along the computed corridor and notify junction operators automatically.
+          <span style="vertical-align:middle;margin-right:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg></span> The system will preempt traffic signals along the computed corridor and notify junction operators automatically.
         </div>
       </section>
     </div>
@@ -97,7 +100,7 @@
   <div id="request-created-state" hidden>
     <section class="panel panel-success">
       <div class="success-header">
-        <span class="icon-badge icon-badge-green">✅</span>
+        <span class="icon-badge icon-badge-green"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
         <div>
           <h2>Emergency Request Created</h2>
           <p class="page-sub">Corridor computed — signal preemption will begin once you proceed.</p>
@@ -175,9 +178,9 @@
 
           <div class="panel-inset">
             <h3>Legend</h3>
-            <div class="legend-row">🚑 <span>Ambulance</span></div>
-            <div class="legend-row">🟢 <span>Signal (Priority)</span></div>
-            <div class="legend-row">📶 <span>VMS (Active)</span></div>
+            <div class="legend-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><line x1="5.5" y1="16" x2="5.5" y2="20"/><line x1="9.5" y1="16" x2="9.5" y2="20"/><path d="M7 6v4M5 8h4"/></svg> <span>Ambulance</span></div>
+            <div class="legend-row"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10B981;flex-shrink:0;"></span> <span>Signal (Priority)</span></div>
+            <div class="legend-row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="6" x2="1" y2="18"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="11" y1="6" x2="11" y2="18"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="21" y1="6" x2="21" y2="18"/></svg> <span>VMS (Active)</span></div>
             <div class="legend-row">— <span>Route</span></div>
           </div>
         </div>

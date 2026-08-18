@@ -1,0 +1,363 @@
+/* ============================================================
+   Emergency Corridor Detail  — /emergency-corridor/<id>
+   ============================================================ */
+
+/* ── ID badge in page title ──────────────────────────────── */
+.ecd-id-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
+  border-radius: 5px;
+  padding: 2px 8px;
+  vertical-align: middle;
+  margin-left: 10px;
+  font-family: 'SFMono-Regular', 'Consolas', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* ── Page header actions ─────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title   { font-size: 20px; font-weight: 700; color: #1A2942; line-height: 1.3; }
+.page-subtitle {
+  font-size: 13px;
+  color: #6B7280;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Two-column layout ───────────────────────────────────── */
+.ecd-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) { .ecd-layout { grid-template-columns: 1fr; } }
+
+.ecd-left  { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ecd-right { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Card base (matching shell pattern) ─────────────────── */
+.ec-card {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.ec-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #FAFAFA;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ec-card-header h2 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1A2942;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ec-card-body { padding: 16px 18px; }
+
+/* ── Map ─────────────────────────────────────────────────── */
+.ecd-map-card { overflow: hidden; }
+#ecd-map {
+  width: 100%;
+  height: 360px;
+  display: block;
+}
+
+/* ── Status pill ─────────────────────────────────────────── */
+.ec-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.ec-pill-idle      { background: #F3F4F6; color: #6B7280; }
+.ec-pill-active    { background: #FEE2E2; color: #991B1B; }
+.ec-pill-completed { background: #DBEAFE; color: #1E40AF; }
+.ec-pill-ready     { background: #CCFBF1; color: #065F46; }
+.ec-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ec-pill-active .dot { animation: dot-pulse 1s infinite; }
+@keyframes dot-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── Bottom row: camera + ANPR ───────────────────────────── */
+.ecd-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 800px) { .ecd-bottom-row { grid-template-columns: 1fr; } }
+
+/* ── Bonnet camera ───────────────────────────────────────── */
+.ecd-camera-card .ec-card-body { padding: 0; }
+.ecd-video-body { padding: 0; }
+
+.ecd-camera-card video {
+  width: 100%;
+  display: block;
+  max-height: 260px;
+  object-fit: cover;
+  background: #000;
+}
+
+.ecd-camera-offline {
+  aspect-ratio: 16/9;
+  background: #0f1923;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #4B5563;
+  font-size: 0.82rem;
+  min-height: 160px;
+}
+
+/* ── ANPR history ────────────────────────────────────────── */
+.ecd-anpr-card .ec-card-body { padding: 0; }
+
+.ec-anpr-history {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.ec-anpr-history::-webkit-scrollbar { width: 4px; }
+.ec-anpr-history::-webkit-scrollbar-track { background: transparent; }
+.ec-anpr-history::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 2px; }
+
+.ec-anpr-entry {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: start;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #F9FAFB;
+  transition: background 0.1s;
+}
+.ec-anpr-entry:last-child { border-bottom: none; }
+.ec-anpr-entry:hover { background: #F9FAFB; }
+.ec-anpr-entry.primary { border-left: 3px solid #0EA5A0; }
+
+.ec-anpr-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #0EA5A0;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.ec-anpr-plate {
+  font-weight: 700;
+  color: #111827;
+  font-family: 'SFMono-Regular', 'Consolas', monospace;
+  font-size: 0.88rem;
+  letter-spacing: 0.5px;
+}
+.ec-anpr-source { font-size: 0.72rem; color: #9CA3AF; margin-top: 1px; }
+.ec-anpr-time   { font-size: 0.75rem; color: #6B7280; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ec-anpr-conf   { font-size: 0.72rem; color: #9CA3AF; margin-top: 2px; text-align: right; }
+.ec-anpr-empty  {
+  color: #9CA3AF;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 28px 16px;
+}
+
+/* ── Right panel: metrics ────────────────────────────────── */
+.ecd-metric-grid {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+.ecd-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 0.84rem;
+}
+.ecd-metric-row:last-child { border-bottom: none; }
+.ecd-metric-label { color: #6B7280; font-size: 0.8rem; }
+.ecd-metric-value {
+  font-weight: 700;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ecd-metric-value.ecd-highlight { color: #0EA5A0; font-size: 1.05rem; }
+.ecd-metric-value.ecd-green     { color: #10B981; }
+
+/* ── Stat chips ──────────────────────────────────────────── */
+.ecd-stat-chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+.ecd-chip {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ecd-chip-icon  { font-size: 1rem; line-height: 1; }
+.ecd-chip-val   { font-size: 1.15rem; font-weight: 800; color: #1A2942; line-height: 1.2; margin-top: 2px; }
+.ecd-chip-label { font-size: 0.68rem; color: #6B7280; line-height: 1.3; }
+
+/* ── Event timeline ──────────────────────────────────────── */
+.ecd-timeline {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px 16px 8px;
+}
+.ecd-timeline::-webkit-scrollbar { width: 4px; }
+.ecd-timeline::-webkit-scrollbar-track { background: transparent; }
+.ecd-timeline::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 2px; }
+
+.ecd-tl-row {
+  display: grid;
+  grid-template-columns: 56px 14px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 5px 0;
+  position: relative;
+}
+
+/* Vertical connector line */
+.ecd-tl-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 62px;
+  top: 20px;
+  bottom: -5px;
+  width: 2px;
+  background: #F3F4F6;
+  z-index: 0;
+}
+
+.ecd-tl-time {
+  font-size: 0.68rem;
+  color: #9CA3AF;
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
+  text-align: right;
+  line-height: 1.4;
+}
+.ecd-tl-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #D1D5DB;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #E5E7EB;
+  margin-top: 2px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Coloured dots per event type */
+.ecd-tl-dot-corridor-started          { background: #0EA5A0; box-shadow: 0 0 0 2px #CCFBF1; }
+.ecd-tl-dot-signal-priority-activated { background: #10B981; box-shadow: 0 0 0 2px #D1FAE5; }
+.ecd-tl-dot-junction-passed           { background: #3B82F6; box-shadow: 0 0 0 2px #DBEAFE; }
+.ecd-tl-dot-vms-warning-activated     { background: #F59E0B; box-shadow: 0 0 0 2px #FEF3C7; }
+.ecd-tl-dot-vms-passed                { background: #9CA3AF; box-shadow: 0 0 0 2px #F3F4F6; }
+.ecd-tl-dot-anpr-detected             { background: #8B5CF6; box-shadow: 0 0 0 2px #EDE9FE; }
+.ecd-tl-dot-anpr-triggered            { background: #8B5CF6; box-shadow: 0 0 0 2px #EDE9FE; }
+.ecd-tl-dot-hospital-reached          { background: #10B981; box-shadow: 0 0 0 2px #D1FAE5; }
+.ecd-tl-dot-corridor-completed        { background: #10B981; box-shadow: 0 0 0 2px #D1FAE5; }
+.ecd-tl-dot-corridor-closed           { background: #9CA3AF; box-shadow: 0 0 0 2px #F3F4F6; }
+
+.ecd-tl-body { padding-bottom: 2px; min-width: 0; }
+.ecd-tl-type {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1A2942;
+  text-transform: capitalize;
+  line-height: 1.3;
+}
+.ecd-tl-desc {
+  font-size: 0.72rem;
+  color: #6B7280;
+  margin-top: 2px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ── Export buttons ──────────────────────────────────────── */
+.ec-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ec-btn-ghost { background: #F9FAFB; color: #374151; }
+.ec-btn-ghost:hover { background: #F3F4F6; border-color: #D1D5DB; color: #111827; }
+.ec-btn-primary { background: #0EA5A0; color: #fff; border-color: #0EA5A0; }
+.ec-btn-primary:hover { background: #0c9490; }
+
+/* ── corridor-badge (reused from list) ───────────────────── */
+.corridor-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.corridor-badge-active    { background: #D1FAE5; color: #065F46; }
+.corridor-badge-completed { background: #DBEAFE; color: #1E40AF; }
+.corridor-badge-closed    { background: #F3F4F6; color: #6B7280; }
+
+/* ── Section-panel utility (matching dashboard) ──────────── */
+.section-panel {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}

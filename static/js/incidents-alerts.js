@@ -126,7 +126,7 @@
     if (emptyState) emptyState.hidden = true;
 
     listBody.innerHTML = rows.map(function (row) {
-      var isEmergency = row.icon === '🚑' || row.icon === '🚒';
+      var isEmergency = row.severity === 'high' && (row.type && row.type.toLowerCase().includes('emergency'));
       var clickable   = !!row.request_id;
       var href        = clickable ? '/emergency/new?request_id=' + encodeURIComponent(row.request_id) : null;
 

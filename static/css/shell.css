@@ -248,7 +248,7 @@ body.sidebar-collapsed .nav-item.active a::before { display: none; }
   gap: 12px;
 }
 
-/* Mobile hamburger — hidden on desktop */
+/* Mobile hamburger — hidden on desktop unless sidebar is collapsed */
 .topbar-hamburger {
   display: none;
   width: 34px;
@@ -270,7 +270,7 @@ body.sidebar-collapsed .nav-item.active a::before { display: none; }
   stroke-width: 2; stroke-linecap: round;
 }
 
-/* Also show topbar hamburger when sidebar is collapsed on desktop */
+/* Show topbar hamburger ONLY when sidebar is collapsed on desktop */
 body.sidebar-collapsed .topbar-hamburger { display: flex; }
 
 .topbar-right {

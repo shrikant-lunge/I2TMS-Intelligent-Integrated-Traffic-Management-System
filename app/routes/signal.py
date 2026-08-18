@@ -5,6 +5,7 @@ import logging
 from flask import Blueprint, jsonify, request
 
 from app.ai.adaptive_signal_pipeline import ModelUnavailableError, adaptive_signal_pipeline
+from app.extensions import db
 
 signal_bp = Blueprint("signal", __name__)
 logger = logging.getLogger(__name__)
@@ -38,6 +39,15 @@ def compute_green_time():
             junction_name,
             direction,
         )
+
+        # Commit all DB writes made by the pipeline (TrafficStateSnapshot,
+        # SignalDecision, DecisionLog, TrafficTrend) so they survive the request.
+        try:
+            db.session.commit()
+        except Exception as commit_exc:
+            logger.warning("DB commit after pipeline failed: %s", commit_exc)
+            db.session.rollback()
+
         return jsonify(result)
     except LookupError as exc:
         return _error(str(exc), 404)
