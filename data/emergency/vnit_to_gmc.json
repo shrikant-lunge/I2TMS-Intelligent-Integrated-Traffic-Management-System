@@ -48,7 +48,7 @@
     },
     {
       "id": "J05",
-      "name": "Nagpur-Chandrapur Road",
+      "name": "Rahate Colony Chowk",
       "lat": 21.128614458617438,
       "lon": 79.07568986168602,
       "ambulance_approach": "west-southwest",
@@ -56,7 +56,7 @@
     },
     {
       "id": "J06",
-      "name": "Rail Blvd",
+      "name": "Rail Bridge",
       "lat": 21.125565217088127,
       "lon": 79.08160771256647,
       "ambulance_approach": "west-northwest",
@@ -80,19 +80,33 @@
     }
   ],
   "vms": [
-    {
-      "id": "VMS01",
-      "name": "VMS - Dindayal Upadhyay Chowk",
-      "lat": 21.126183509797094,
-      "lon": 79.06391319721983,
-      "sequence": 1
-    },
-    {
-      "id": "VMS02",
-      "name": "VMS - Rail Blvd",
-      "lat": 21.125565217088127,
-      "lon": 79.08160771256647,
-      "sequence": 2
-    }
-  ]
+  {
+    "id": "VMS01",
+    "name": "VMS — VNIT Corridor",
+    "lat": 21.121472,
+    "lon": 79.053362,
+    "sequence": 1
+  },
+  {
+    "id": "VMS02",
+    "name": "VMS — Govt. ITI Nagpur",
+    "lat": 21.127376,
+    "lon": 79.071933,
+    "sequence": 2
+  },
+  {
+    "id": "VMS03",
+    "name": "VMS — Near Central Jail",
+    "lat": 21.128415,
+    "lon": 79.079053,
+    "sequence": 3
+  },
+  {
+    "id": "VMS04",
+    "name": "VMS — Ajni Railway Bridge",
+    "lat": 21.124740,
+    "lon": 79.082986,
+    "sequence": 4
+  }
+]
 }

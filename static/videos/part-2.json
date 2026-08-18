@@ -1,0 +1,828 @@
+{
+  "source_video": "/content/part 2.mp4",
+  "total_unique_tracked_vehicles": 204,
+  "vehicle_counts": {
+    "truck": 33,
+    "car": 158,
+    "motorcycle": 21,
+    "bus": 18
+  },
+  "tracked_vehicles": [
+    {
+      "track_id": 1,
+      "category": "car"
+    },
+    {
+      "track_id": 2,
+      "category": "truck"
+    },
+    {
+      "track_id": 3,
+      "category": "car"
+    },
+    {
+      "track_id": 4,
+      "category": "car"
+    },
+    {
+      "track_id": 5,
+      "category": "truck"
+    },
+    {
+      "track_id": 6,
+      "category": "car"
+    },
+    {
+      "track_id": 7,
+      "category": "car"
+    },
+    {
+      "track_id": 8,
+      "category": "truck"
+    },
+    {
+      "track_id": 9,
+      "category": "car"
+    },
+    {
+      "track_id": 10,
+      "category": "car"
+    },
+    {
+      "track_id": 11,
+      "category": "car"
+    },
+    {
+      "track_id": 12,
+      "category": "car"
+    },
+    {
+      "track_id": 13,
+      "category": "car"
+    },
+    {
+      "track_id": 14,
+      "category": "car"
+    },
+    {
+      "track_id": 16,
+      "category": "car"
+    },
+    {
+      "track_id": 17,
+      "category": "car"
+    },
+    {
+      "track_id": 19,
+      "category": "car"
+    },
+    {
+      "track_id": 20,
+      "category": "car"
+    },
+    {
+      "track_id": 21,
+      "category": "car"
+    },
+    {
+      "track_id": 22,
+      "category": "truck"
+    },
+    {
+      "track_id": 23,
+      "category": "car"
+    },
+    {
+      "track_id": 24,
+      "category": "car"
+    },
+    {
+      "track_id": 26,
+      "category": "car"
+    },
+    {
+      "track_id": 27,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 28,
+      "category": "car"
+    },
+    {
+      "track_id": 29,
+      "category": "car"
+    },
+    {
+      "track_id": 30,
+      "category": "car"
+    },
+    {
+      "track_id": 32,
+      "category": "car"
+    },
+    {
+      "track_id": 33,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 34,
+      "category": "car"
+    },
+    {
+      "track_id": 36,
+      "category": "car"
+    },
+    {
+      "track_id": 37,
+      "category": "car"
+    },
+    {
+      "track_id": 38,
+      "category": "car"
+    },
+    {
+      "track_id": 39,
+      "category": "car"
+    },
+    {
+      "track_id": 40,
+      "category": "car"
+    },
+    {
+      "track_id": 41,
+      "category": "car"
+    },
+    {
+      "track_id": 42,
+      "category": "car"
+    },
+    {
+      "track_id": 43,
+      "category": "truck"
+    },
+    {
+      "track_id": 44,
+      "category": "bus"
+    },
+    {
+      "track_id": 45,
+      "category": "car"
+    },
+    {
+      "track_id": 46,
+      "category": "car"
+    },
+    {
+      "track_id": 47,
+      "category": "car"
+    },
+    {
+      "track_id": 65,
+      "category": "car"
+    },
+    {
+      "track_id": 66,
+      "category": "car"
+    },
+    {
+      "track_id": 67,
+      "category": "car"
+    },
+    {
+      "track_id": 68,
+      "category": "car"
+    },
+    {
+      "track_id": 69,
+      "category": "car"
+    },
+    {
+      "track_id": 70,
+      "category": "car"
+    },
+    {
+      "track_id": 72,
+      "category": "car"
+    },
+    {
+      "track_id": 73,
+      "category": "car"
+    },
+    {
+      "track_id": 75,
+      "category": "truck"
+    },
+    {
+      "track_id": 76,
+      "category": "car"
+    },
+    {
+      "track_id": 77,
+      "category": "car"
+    },
+    {
+      "track_id": 80,
+      "category": "car"
+    },
+    {
+      "track_id": 88,
+      "category": "car"
+    },
+    {
+      "track_id": 89,
+      "category": "car"
+    },
+    {
+      "track_id": 91,
+      "category": "truck"
+    },
+    {
+      "track_id": 92,
+      "category": "car"
+    },
+    {
+      "track_id": 93,
+      "category": "car"
+    },
+    {
+      "track_id": 94,
+      "category": "car"
+    },
+    {
+      "track_id": 95,
+      "category": "car"
+    },
+    {
+      "track_id": 100,
+      "category": "car"
+    },
+    {
+      "track_id": 101,
+      "category": "truck"
+    },
+    {
+      "track_id": 103,
+      "category": "truck"
+    },
+    {
+      "track_id": 104,
+      "category": "car"
+    },
+    {
+      "track_id": 105,
+      "category": "car"
+    },
+    {
+      "track_id": 106,
+      "category": "car"
+    },
+    {
+      "track_id": 107,
+      "category": "bus"
+    },
+    {
+      "track_id": 109,
+      "category": "car"
+    },
+    {
+      "track_id": 110,
+      "category": "car"
+    },
+    {
+      "track_id": 111,
+      "category": "car"
+    },
+    {
+      "track_id": 112,
+      "category": "car"
+    },
+    {
+      "track_id": 113,
+      "category": "car"
+    },
+    {
+      "track_id": 116,
+      "category": "car"
+    },
+    {
+      "track_id": 122,
+      "category": "car"
+    },
+    {
+      "track_id": 124,
+      "category": "car"
+    },
+    {
+      "track_id": 125,
+      "category": "bus"
+    },
+    {
+      "track_id": 127,
+      "category": "truck"
+    },
+    {
+      "track_id": 128,
+      "category": "car"
+    },
+    {
+      "track_id": 129,
+      "category": "car"
+    },
+    {
+      "track_id": 130,
+      "category": "truck"
+    },
+    {
+      "track_id": 137,
+      "category": "bus"
+    },
+    {
+      "track_id": 146,
+      "category": "car"
+    },
+    {
+      "track_id": 147,
+      "category": "bus"
+    },
+    {
+      "track_id": 148,
+      "category": "car"
+    },
+    {
+      "track_id": 149,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 150,
+      "category": "car"
+    },
+    {
+      "track_id": 151,
+      "category": "car"
+    },
+    {
+      "track_id": 153,
+      "category": "truck"
+    },
+    {
+      "track_id": 154,
+      "category": "bus"
+    },
+    {
+      "track_id": 157,
+      "category": "car"
+    },
+    {
+      "track_id": 172,
+      "category": "bus"
+    },
+    {
+      "track_id": 174,
+      "category": "car"
+    },
+    {
+      "track_id": 176,
+      "category": "car"
+    },
+    {
+      "track_id": 177,
+      "category": "car"
+    },
+    {
+      "track_id": 178,
+      "category": "bus"
+    },
+    {
+      "track_id": 179,
+      "category": "car"
+    },
+    {
+      "track_id": 180,
+      "category": "car"
+    },
+    {
+      "track_id": 181,
+      "category": "bus"
+    },
+    {
+      "track_id": 193,
+      "category": "bus"
+    },
+    {
+      "track_id": 195,
+      "category": "car"
+    },
+    {
+      "track_id": 196,
+      "category": "truck"
+    },
+    {
+      "track_id": 198,
+      "category": "truck"
+    },
+    {
+      "track_id": 206,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 207,
+      "category": "truck"
+    },
+    {
+      "track_id": 210,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 212,
+      "category": "car"
+    },
+    {
+      "track_id": 214,
+      "category": "truck"
+    },
+    {
+      "track_id": 216,
+      "category": "car"
+    },
+    {
+      "track_id": 217,
+      "category": "car"
+    },
+    {
+      "track_id": 218,
+      "category": "car"
+    },
+    {
+      "track_id": 229,
+      "category": "bus"
+    },
+    {
+      "track_id": 230,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 232,
+      "category": "bus"
+    },
+    {
+      "track_id": 234,
+      "category": "car"
+    },
+    {
+      "track_id": 236,
+      "category": "car"
+    },
+    {
+      "track_id": 237,
+      "category": "truck"
+    },
+    {
+      "track_id": 238,
+      "category": "car"
+    },
+    {
+      "track_id": 247,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 281,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 283,
+      "category": "car"
+    },
+    {
+      "track_id": 284,
+      "category": "car"
+    },
+    {
+      "track_id": 286,
+      "category": "car"
+    },
+    {
+      "track_id": 296,
+      "category": "car"
+    },
+    {
+      "track_id": 297,
+      "category": "car"
+    },
+    {
+      "track_id": 298,
+      "category": "car"
+    },
+    {
+      "track_id": 299,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 300,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 301,
+      "category": "truck"
+    },
+    {
+      "track_id": 302,
+      "category": "truck"
+    },
+    {
+      "track_id": 319,
+      "category": "car"
+    },
+    {
+      "track_id": 320,
+      "category": "car"
+    },
+    {
+      "track_id": 321,
+      "category": "car"
+    },
+    {
+      "track_id": 322,
+      "category": "car"
+    },
+    {
+      "track_id": 325,
+      "category": "car"
+    },
+    {
+      "track_id": 327,
+      "category": "car"
+    },
+    {
+      "track_id": 346,
+      "category": "car"
+    },
+    {
+      "track_id": 347,
+      "category": "car"
+    },
+    {
+      "track_id": 348,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 355,
+      "category": "car"
+    },
+    {
+      "track_id": 361,
+      "category": "car"
+    },
+    {
+      "track_id": 362,
+      "category": "car"
+    },
+    {
+      "track_id": 364,
+      "category": "car"
+    },
+    {
+      "track_id": 382,
+      "category": "car"
+    },
+    {
+      "track_id": 383,
+      "category": "car"
+    },
+    {
+      "track_id": 385,
+      "category": "truck"
+    },
+    {
+      "track_id": 387,
+      "category": "car"
+    },
+    {
+      "track_id": 392,
+      "category": "car"
+    },
+    {
+      "track_id": 404,
+      "category": "car"
+    },
+    {
+      "track_id": 406,
+      "category": "car"
+    },
+    {
+      "track_id": 407,
+      "category": "car"
+    },
+    {
+      "track_id": 444,
+      "category": "car"
+    },
+    {
+      "track_id": 446,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 448,
+      "category": "car"
+    },
+    {
+      "track_id": 449,
+      "category": "car"
+    },
+    {
+      "track_id": 450,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 473,
+      "category": "car"
+    },
+    {
+      "track_id": 474,
+      "category": "car"
+    },
+    {
+      "track_id": 480,
+      "category": "car"
+    },
+    {
+      "track_id": 481,
+      "category": "car"
+    },
+    {
+      "track_id": 492,
+      "category": "car"
+    },
+    {
+      "track_id": 493,
+      "category": "car"
+    },
+    {
+      "track_id": 494,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 496,
+      "category": "car"
+    },
+    {
+      "track_id": 498,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 500,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 501,
+      "category": "car"
+    },
+    {
+      "track_id": 502,
+      "category": "car"
+    },
+    {
+      "track_id": 516,
+      "category": "car"
+    },
+    {
+      "track_id": 517,
+      "category": "car"
+    },
+    {
+      "track_id": 519,
+      "category": "car"
+    },
+    {
+      "track_id": 520,
+      "category": "car"
+    },
+    {
+      "track_id": 542,
+      "category": "car"
+    },
+    {
+      "track_id": 544,
+      "category": "car"
+    },
+    {
+      "track_id": 545,
+      "category": "car"
+    },
+    {
+      "track_id": 559,
+      "category": "car"
+    },
+    {
+      "track_id": 560,
+      "category": "car"
+    },
+    {
+      "track_id": 561,
+      "category": "car"
+    },
+    {
+      "track_id": 562,
+      "category": "car"
+    },
+    {
+      "track_id": 572,
+      "category": "car"
+    },
+    {
+      "track_id": 593,
+      "category": "car"
+    },
+    {
+      "track_id": 594,
+      "category": "motorcycle"
+    },
+    {
+      "track_id": 595,
+      "category": "car"
+    },
+    {
+      "track_id": 600,
+      "category": "bus"
+    },
+    {
+      "track_id": 601,
+      "category": "bus"
+    },
+    {
+      "track_id": 602,
+      "category": "car"
+    },
+    {
+      "track_id": 615,
+      "category": "bus"
+    },
+    {
+      "track_id": 616,
+      "category": "bus"
+    },
+    {
+      "track_id": 623,
+      "category": "car"
+    },
+    {
+      "track_id": 624,
+      "category": "car"
+    },
+    {
+      "track_id": 626,
+      "category": "car"
+    },
+    {
+      "track_id": 627,
+      "category": "bus"
+    },
+    {
+      "track_id": 629,
+      "category": "car"
+    },
+    {
+      "track_id": 638,
+      "category": "car"
+    },
+    {
+      "track_id": 646,
+      "category": "car"
+    },
+    {
+      "track_id": 647,
+      "category": "car"
+    },
+    {
+      "track_id": 648,
+      "category": "car"
+    },
+    {
+      "track_id": 650,
+      "category": "car"
+    },
+    {
+      "track_id": 670,
+      "category": "car"
+    },
+    {
+      "track_id": 671,
+      "category": "car"
+    },
+    {
+      "track_id": 681,
+      "category": "car"
+    },
+    {
+      "track_id": 697,
+      "category": "car"
+    },
+    {
+      "track_id": 701,
+      "category": "car"
+    },
+    {
+      "track_id": 717,
+      "category": "car"
+    }
+  ]
+}

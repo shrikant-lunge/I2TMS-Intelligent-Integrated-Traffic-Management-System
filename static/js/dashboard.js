@@ -138,8 +138,17 @@
   }
 
   /* ──────────────────────────────────────────────────────────────────────
-     Live junction cards
+     Live junction cards — part-N-result.mp4 videos (cycling by index)
   ────────────────────────────────────────────────────────────────────── */
+
+  // Map junction index (0-3) → static video filename in /static/videos/
+  var JUNCTION_VIDEOS = [
+    '/static/videos/part-1-result.mp4',
+    '/static/videos/part-2-result.mp4',
+    '/static/videos/part-3-result.mp4',
+    '/static/videos/part-4-result.mp4',
+  ];
+
   function renderJunctions(junctions) {
     var grid = document.getElementById('junction-grid');
     if (!grid) return;
@@ -151,12 +160,18 @@
       return;
     }
 
-    grid.innerHTML = junctions.map(function (j) {
+    grid.innerHTML = junctions.map(function (j, idx) {
       var status   = (j.status || 'low').toLowerCase();
       var label    = cap(status);
       var jid      = 'junction-' + esc(j.name.replace(/\s+/g, '').toLowerCase());
-      var thumbSrc = j.thumbnail_url || '/static/img/camera-placeholder.jpg';
-      var camHtml  = '<img src="' + esc(thumbSrc) + '" alt="' + esc(j.name) + ' camera feed" loading="lazy">';
+      // Use part video cycling by index; fall back to thumbnail image if out of range
+      var videoSrc = JUNCTION_VIDEOS[idx % JUNCTION_VIDEOS.length];
+      var camHtml  =
+        '<video src="' + esc(videoSrc) + '"' +
+        ' autoplay muted loop playsinline' +
+        ' aria-label="' + esc(j.name) + ' live camera feed"' +
+        ' style="width:100%;height:100%;object-fit:cover;display:block;">' +
+        '</video>';
 
       return (
         '<a href="' + esc(j.link || '#') + '" class="junction-card" id="' + jid + '">' +

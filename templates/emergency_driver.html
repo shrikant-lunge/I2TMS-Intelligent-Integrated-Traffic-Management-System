@@ -19,11 +19,18 @@
       <span class="drv-prototype-badge">SIMULATION</span>
     </div>
     <div style="display:flex;gap:16px;align-items:center;">
+      {% if driver_username %}
+      <div class="drv-header-status" style="gap:8px;">
+        <span class="dot"></span>
+        {{ driver_username }}{% if driver_mobile %} · {{ driver_mobile }}{% endif %}
+      </div>
+      {% endif %}
       <div class="drv-header-status">
         <span class="dot"></span>
         I²TMS Connected
       </div>
       <div class="drv-header-clock" id="drv-clock"></div>
+      <a href="/driver-logout" style="font-size:11px;color:#9CA3AF;text-decoration:none;padding:4px 10px;border:1px solid #374151;border-radius:6px;transition:color 0.2s,border-color 0.2s;" onmouseover="this.style.color='#F9FAFB';this.style.borderColor='#6B7280'" onmouseout="this.style.color='#9CA3AF';this.style.borderColor='#374151'">Logout</a>
     </div>
   </header>
 
@@ -36,7 +43,7 @@
 
       <!-- Source — fixed -->
       <div class="drv-route-row">
-        <div class="drv-route-icon source">🏛</div>
+        <div class="drv-route-icon source"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 2 7 22 7"/></svg></div>
         <div>
           <div class="drv-route-label">SOURCE</div>
           <div class="drv-route-name">VNIT Nagpur</div>
@@ -46,7 +53,7 @@
 
       <!-- Destination — select -->
       <div class="drv-route-row">
-        <div class="drv-route-icon dest">🏥</div>
+        <div class="drv-route-icon dest"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
         <div style="flex:1;">
           <div class="drv-route-label">DESTINATION</div>
           <div class="drv-select-wrap">
@@ -68,7 +75,7 @@
       </div>
       <div class="drv-corridor-banner active drv-hidden" id="drv-banner-active">
         <svg viewBox="0 0 24 24" class="drv-blink"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span>🚨 EMERGENCY CORRIDOR ACTIVE</span>
+        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> EMERGENCY CORRIDOR ACTIVE</span>
       </div>
       <div class="drv-corridor-banner completed drv-hidden" id="drv-banner-completed">
         <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -105,7 +112,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         START EMERGENCY
       </button>
-      <button class="drv-btn drv-btn-pause drv-hidden" id="drv-btn-pause">⏸ PAUSE</button>
+      <button class="drv-btn drv-btn-pause drv-hidden" id="drv-btn-pause"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> PAUSE</button>
       <button class="drv-btn drv-btn-reset drv-hidden" id="drv-btn-reset">↺ RESET</button>
     </div>
 
@@ -159,7 +166,7 @@ HAVE A GOOD DAY</div>
     <!-- Completion card -->
     <div class="drv-card drv-hidden" id="drv-completion-card">
       <div class="drv-completion-card">
-        <h3>✅ EMERGENCY CORRIDOR COMPLETED</h3>
+        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> EMERGENCY CORRIDOR COMPLETED</h3>
         <div class="drv-completion-stats">
           <div class="drv-comp-stat">
             <strong id="drv-comp-baseline">—</strong>
@@ -175,9 +182,9 @@ HAVE A GOOD DAY</div>
           </div>
         </div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:0.75rem;color:var(--drv-muted);">
-          <span>🚦 <strong id="drv-comp-junctions">0</strong> Junctions Prioritised</span>
-          <span>📶 <strong id="drv-comp-vms">0</strong> VMS Activated</span>
-          <span>🔍 <strong id="drv-comp-anpr">0</strong> ANPR Detections</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="2" fill="currentColor" stroke="none"/></svg> <strong id="drv-comp-junctions">0</strong> Junctions Prioritised</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><line x1="1" y1="6" x2="1" y2="18"/><line x1="6" y1="3" x2="6" y2="21"/><line x1="11" y1="6" x2="11" y2="18"/><line x1="16" y1="3" x2="16" y2="21"/><line x1="21" y1="6" x2="21" y2="18"/></svg> <strong id="drv-comp-vms">0</strong> VMS Activated</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> <strong id="drv-comp-anpr">0</strong> ANPR Detections</span>
         </div>
       </div>
     </div>
@@ -190,7 +197,7 @@ HAVE A GOOD DAY</div>
 
     <!-- Navigation instruction banner -->
     <div class="drv-nav-banner drv-hidden" id="drv-nav-banner">
-      <div class="drv-nav-banner-icon">➡</div>
+      <div class="drv-nav-banner-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
       <div>
         <div class="drv-nav-banner-next">NEXT</div>
         <div class="drv-nav-banner-name" id="drv-nav-banner-name">—</div>

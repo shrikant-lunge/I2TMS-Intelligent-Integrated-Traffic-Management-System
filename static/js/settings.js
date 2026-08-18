@@ -69,6 +69,7 @@
     if (tabId === 'junctions') fetchJunctions();
     if (tabId === 'vms') fetchVMSBoards();
     if (tabId === 'users') fetchUsers();
+    if (tabId === 'drivers') fetchDrivers();
   }
 
   /* ──────────────────────────────────────────────────────────────────────
@@ -191,22 +192,33 @@
       .then(function (data) {
         if (!junctionsBody) return;
         if (!data.length) {
-          junctionsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9CA3AF">No junctions configured</td></tr>';
+          junctionsBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9CA3AF">No junctions configured</td></tr>';
           return;
         }
         junctionsBody.innerHTML = data.map(function (j) {
           var dotColor = j.status === 'high' ? 'high' : (j.status === 'moderate' ? 'moderate' : 'low');
           var statusText = j.status.toUpperCase();
+          var typeText = j.junction_type === 't-point' ? 'T-Point (3)' : 'Square (4)';
+          
           return '<tr>'
-            + '<td><strong>' + escapeHtml(j.name) + '</strong></td>'
+            + '<td><strong>' + escapeHtml(j.name) + '</strong><div style="font-size:11px;color:#6B7280;margin-top:2px;">' + typeText + '</div></td>'
             + '<td><span class="status-indicator-text"><span class="status-dot-sm ' + dotColor + '"></span>' + statusText + '</span></td>'
+            + '<td><code>' + (j.lat && j.lng ? escapeHtml(j.lat + ', ' + j.lng) : '—') + '</code></td>'
             + '<td><code>' + escapeHtml(j.camera_thumbnail_url || '—') + '</code></td>'
             + '<td>' + escapeHtml(j.last_updated) + '</td>'
-            + '<td style="text-align:right"><button class="btn-outline btn-xs" onclick="openEditJunction(' + j.id + ', \'' + escapeHtml(j.name) + '\', \'' + j.status + '\', \'' + escapeHtml(j.camera_thumbnail_url) + '\')">Edit</button></td>'
+            + '<td style="text-align:right"><button class="btn-outline btn-xs" onclick="openEditJunction(' + j.id + ', \'' + escapeHtml(j.name) + '\', \'' + j.status + '\', \'' + escapeHtml(j.camera_thumbnail_url) + '\', \'' + (j.junction_type || 'square') + '\', ' + (j.lat || null) + ', ' + (j.lng || null) + ')">Edit</button></td>'
             + '</tr>';
         }).join('');
       });
   }
+
+  window.updateJunctionSignalHint = function(val) {
+    var hint = document.getElementById('junction-signal-hint');
+    if (hint) {
+      if (val === 't-point') hint.textContent = 'This junction manages 3 main signals.';
+      else hint.textContent = 'This junction manages 4 main signals.';
+    }
+  };
 
   if (addJunctionBtn) {
     addJunctionBtn.addEventListener('click', function () {
@@ -214,17 +226,25 @@
       document.getElementById('modal-junction-id').value = '';
       document.getElementById('modal-junction-name').value = '';
       document.getElementById('modal-junction-status').value = 'low';
+      document.getElementById('modal-junction-type').value = 'square';
+      document.getElementById('modal-junction-lat').value = '';
+      document.getElementById('modal-junction-lng').value = '';
       document.getElementById('modal-junction-url').value = '';
+      updateJunctionSignalHint('square');
       openModal('modal-junction');
     });
   }
 
-  window.openEditJunction = function (id, name, status, url) {
+  window.openEditJunction = function (id, name, status, url, type, lat, lng) {
     document.getElementById('modal-junction-title').textContent = 'Edit Junction Details';
     document.getElementById('modal-junction-id').value = id;
     document.getElementById('modal-junction-name').value = name;
     document.getElementById('modal-junction-status').value = status;
+    document.getElementById('modal-junction-type').value = type;
+    document.getElementById('modal-junction-lat').value = lat !== null ? lat : '';
+    document.getElementById('modal-junction-lng').value = lng !== null ? lng : '';
     document.getElementById('modal-junction-url').value = url;
+    updateJunctionSignalHint(type);
     openModal('modal-junction');
   };
 
@@ -234,6 +254,9 @@
       var id = document.getElementById('modal-junction-id').value;
       var name = document.getElementById('modal-junction-name').value;
       var status = document.getElementById('modal-junction-status').value;
+      var type = document.getElementById('modal-junction-type').value;
+      var lat = document.getElementById('modal-junction-lat').value;
+      var lng = document.getElementById('modal-junction-lng').value;
       var url = document.getElementById('modal-junction-url').value;
 
       var endpoint = id ? '/api/junctions/' + id : '/api/junctions';
@@ -242,7 +265,7 @@
       fetch(endpoint, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, status: status, camera_thumbnail_url: url })
+        body: JSON.stringify({ name: name, status: status, camera_thumbnail_url: url, junction_type: type, lat: lat ? parseFloat(lat) : null, lng: lng ? parseFloat(lng) : null })
       })
       .then(function (res) { return res.json(); })
       .then(function () {
@@ -273,9 +296,10 @@
           return '<tr>'
             + '<td><strong>' + escapeHtml(v.vms_id) + '</strong></td>'
             + '<td>' + escapeHtml(v.location) + '</td>'
+            + '<td><code>' + (v.lat && v.lng ? escapeHtml(v.lat + ', ' + v.lng) : '—') + '</code></td>'
             + '<td><span class="status-indicator-text"><span class="status-dot-sm ' + dotColor + '"></span>' + v.status.toUpperCase() + '</span></td>'
             + '<td><code>' + escapeHtml(v.current_message || '—') + '</code></td>'
-            + '<td style="text-align:right"><button class="btn-outline btn-xs" onclick="openEditVMS(' + v.id + ', \'' + escapeHtml(v.vms_id) + '\', \'' + escapeHtml(v.location) + '\', \'' + v.status + '\', \'' + escapeHtml(v.current_message) + '\')">Edit</button></td>'
+            + '<td style="text-align:right"><button class="btn-outline btn-xs" onclick="openEditVMS(' + v.id + ', \'' + escapeHtml(v.vms_id) + '\', \'' + escapeHtml(v.location) + '\', \'' + v.status + '\', \'' + escapeHtml(v.current_message) + '\', ' + (v.lat || null) + ', ' + (v.lng || null) + ')">Edit</button></td>'
             + '</tr>';
         }).join('');
       });
@@ -286,20 +310,22 @@
       document.getElementById('modal-vms-title').textContent = 'Add New VMS Board';
       document.getElementById('modal-vms-db-id').value = '';
       document.getElementById('modal-vms-id').value = '';
-      document.getElementById('modal-vms-id').removeAttribute('readonly');
       document.getElementById('modal-vms-location').value = '';
+      document.getElementById('modal-vms-lat').value = '';
+      document.getElementById('modal-vms-lng').value = '';
       document.getElementById('modal-vms-status').value = 'active';
       document.getElementById('modal-vms-message').value = '';
       openModal('modal-vms');
     });
   }
 
-  window.openEditVMS = function (id, vmsId, location, status, message) {
+  window.openEditVMS = function (id, vmsId, location, status, message, lat, lng) {
     document.getElementById('modal-vms-title').textContent = 'Edit VMS Board';
     document.getElementById('modal-vms-db-id').value = id;
     document.getElementById('modal-vms-id').value = vmsId;
-    document.getElementById('modal-vms-id').setAttribute('readonly', 'true'); // VMS-ID should not be key-altered once set
     document.getElementById('modal-vms-location').value = location;
+    document.getElementById('modal-vms-lat').value = lat !== null ? lat : '';
+    document.getElementById('modal-vms-lng').value = lng !== null ? lng : '';
     document.getElementById('modal-vms-status').value = status;
     document.getElementById('modal-vms-message').value = message;
     openModal('modal-vms');
@@ -309,8 +335,9 @@
     vmsForm.addEventListener('submit', function (e) {
       e.preventDefault();
       var id = document.getElementById('modal-vms-db-id').value;
-      var vmsId = document.getElementById('modal-vms-id').value;
       var location = document.getElementById('modal-vms-location').value;
+      var lat = document.getElementById('modal-vms-lat').value;
+      var lng = document.getElementById('modal-vms-lng').value;
       var status = document.getElementById('modal-vms-status').value;
       var message = document.getElementById('modal-vms-message').value;
 
@@ -320,7 +347,7 @@
       fetch(endpoint, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vms_id: vmsId, location: location, status: status, current_message: message })
+        body: JSON.stringify({ location: location, status: status, current_message: message, lat: lat ? parseFloat(lat) : null, lng: lng ? parseFloat(lng) : null })
       })
       .then(function (res) {
         if (!res.ok) {
@@ -345,6 +372,20 @@
   var userForm   = document.getElementById('form-user');
   var resetForm  = document.getElementById('form-reset-password');
 
+  // Show/hide Mobile field depending on selected role
+  window.toggleDriverMobileField = function (role) {
+    var field = document.getElementById('field-driver-mobile');
+    var mobileInput = document.getElementById('modal-user-mobile');
+    if (!field) return;
+    if (role === 'driver') {
+      field.style.display = '';
+      if (mobileInput) mobileInput.required = true;
+    } else {
+      field.style.display = 'none';
+      if (mobileInput) mobileInput.required = false;
+    }
+  };
+
   function fetchUsers() {
     if (!usersBody) return; // Non-admin users don't render this panel
     fetch('/api/users')
@@ -353,8 +394,10 @@
         return res.json();
       })
       .then(function (data) {
-        usersBody.innerHTML = data.map(function (u) {
-          var roleBadge = u.role === 'admin' ? '👮 Administrator' : '🔧 Operator';
+        // Filter out driver accounts from the main users table
+        var nonDrivers = data.filter(function (u) { return u.role !== 'driver'; });
+        usersBody.innerHTML = nonDrivers.map(function (u) {
+          var roleBadge = u.role === 'admin' ? 'Administrator' : 'Operator';
           return '<tr>'
             + '<td><strong>' + escapeHtml(u.username) + '</strong></td>'
             + '<td>' + roleBadge + '</td>'
@@ -377,6 +420,9 @@
       document.getElementById('modal-user-username').value = '';
       document.getElementById('modal-user-password').value = '';
       document.getElementById('modal-user-role').value = 'operator';
+      var mobileInput = document.getElementById('modal-user-mobile');
+      if (mobileInput) mobileInput.value = '';
+      toggleDriverMobileField('operator');
       openModal('modal-user');
     });
   }
@@ -387,11 +433,21 @@
       var username = document.getElementById('modal-user-username').value;
       var password = document.getElementById('modal-user-password').value;
       var role = document.getElementById('modal-user-role').value;
+      var mobileEl = document.getElementById('modal-user-mobile');
+      var mobile = mobileEl ? mobileEl.value.trim() : '';
+
+      if (role === 'driver' && !mobile) {
+        alert('Mobile number is required for Driver accounts.');
+        return;
+      }
+
+      var payload = { username: username, password: password, role: role };
+      if (mobile) payload.mobile = mobile;
 
       fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password, role: role })
+        body: JSON.stringify(payload)
       })
       .then(function (res) {
         if (!res.ok) {
@@ -403,6 +459,7 @@
         if (data) {
           closeModal('modal-user');
           fetchUsers();
+          fetchDrivers(); // refresh drivers table too
         }
       });
     });
@@ -453,7 +510,51 @@
   };
 
   /* ──────────────────────────────────────────────────────────────────────
-     5. System Health Status Polling
+     5. Driver Accounts (Admin only)
+  ────────────────────────────────────────────────────────────────────── */
+  var driversBody  = document.getElementById('table-drivers-body');
+  var addDriverBtn = document.getElementById('btn-add-driver');
+
+  function fetchDrivers() {
+    if (!driversBody) return;
+    fetch('/api/users')
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var drivers = data.filter(function (u) { return u.role === 'driver'; });
+        if (!drivers.length) {
+          driversBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6B7280;padding:20px;">No driver accounts yet. Click "+ Add Driver" to create one.</td></tr>';
+          return;
+        }
+        driversBody.innerHTML = drivers.map(function (u) {
+          return '<tr>'
+            + '<td><strong>' + escapeHtml(u.username) + '</strong></td>'
+            + '<td>' + (u.mobile ? escapeHtml(u.mobile) : '<span style="color:#6B7280">—</span>') + '</td>'
+            + '<td>' + escapeHtml(u.last_login) + '</td>'
+            + '<td>' + escapeHtml(u.created_at) + '</td>'
+            + '<td style="text-align:right">'
+            +   '<button class="btn-outline btn-xs" onclick="openResetPassword(' + u.id + ', \'' + escapeHtml(u.username) + '\')" style="margin-right:8px">Reset Pass</button>'
+            +   '<button class="btn-outline btn-xs btn-delete" onclick="deactivateUser(' + u.id + ', \'' + escapeHtml(u.username) + '\')">Remove</button>'
+            + '</td></tr>';
+        }).join('');
+      })
+      .catch(function (e) { console.warn('[settings drivers] fetch error:', e); });
+  }
+
+  // "+ Add Driver" opens the same modal pre-set to Driver role
+  if (addDriverBtn) {
+    addDriverBtn.addEventListener('click', function () {
+      document.getElementById('modal-user-username').value = '';
+      document.getElementById('modal-user-password').value = '';
+      document.getElementById('modal-user-role').value = 'driver';
+      var mobileInput = document.getElementById('modal-user-mobile');
+      if (mobileInput) mobileInput.value = '';
+      toggleDriverMobileField('driver');
+      openModal('modal-user');
+    });
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     6. System Health Status Polling
   ────────────────────────────────────────────────────────────────────── */
   function pollSystemStatus() {
     fetch('/api/system_status')

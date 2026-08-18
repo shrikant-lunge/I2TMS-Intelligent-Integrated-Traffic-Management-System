@@ -8,6 +8,7 @@ class Junction(db.Model):
     name                 = db.Column(db.String(100), nullable=False)
     lat                  = db.Column(db.Float, nullable=True)
     lng                  = db.Column(db.Float, nullable=True)
+    junction_type        = db.Column(db.String(20), nullable=False, default="square") # 'square' | 't-point'
     status               = db.Column(db.String(20), nullable=False, default="low")  # 'high' | 'moderate' | 'low'
     camera_thumbnail_url = db.Column(db.String(512), nullable=True)
     last_updated         = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
