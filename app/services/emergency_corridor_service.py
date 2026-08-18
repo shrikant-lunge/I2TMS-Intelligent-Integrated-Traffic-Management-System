@@ -441,6 +441,7 @@ class EmergencyCorridorService:
                 },
                 "source": self.source,
                 "destination": self.destination_info,
+                "route_geometry": deepcopy(self.route_geometry),
                 "distance_km": self.distance_km,
                 "started_at": self.started_at,
             }
