@@ -451,14 +451,24 @@ The project architecture, algorithms, workflow, demonstration strategy, and tech
 - OSRM (Open Source Routing Machine) for route calculation
 - YOLO for vehicle detection
 - Traffic-engineering principles based on Webster's Signal Timing Formula
+- [SORT (Simple Online and Realtime Tracking)](https://github.com/abewley/sort) by Alex Bewley — used for multi-object vehicle tracking, licensed under GPL-3.0
+- [Automatic Number Plate Recognition (YOLOv8 + EasyOCR)](https://github.com/computervisioneng/automatic-number-plate-recognition-python-yolov8) — used for the ANPR pipeline, licensed under AGPL-3.0
+
+See [NOTICE.md](NOTICE.md) for full third-party attribution details.
 
 ---
 
 ## License
 
-This project is intended for educational and project-development purposes.
+This project incorporates code derived from [SORT](https://github.com/abewley/sort) (GPL-3.0) and from a [YOLOv8-based ANPR project](https://github.com/computervisioneng/automatic-number-plate-recognition-python-yolov8) (AGPL-3.0). Because both are copyleft licenses, this repository as a whole is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see [LICENSE](LICENSE).
 
-An open-source license such as MIT can be added once all project contributors agree to the chosen license.
+In practice this means:
+
+- The full source code of this project must remain publicly available.
+- If a modified version of this project is run as a network-accessible service, users interacting with it over the network must be offered access to the corresponding source code (AGPL-3.0, §13).
+- Any fork or redistribution must preserve this license and the attributions in [NOTICE.md](NOTICE.md).
+
+This project can no longer be distributed under MIT or any other permissive license, since it builds on GPL-3.0 and AGPL-3.0 licensed code.
 
 ---
 
